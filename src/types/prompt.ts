@@ -9,11 +9,18 @@ export interface Flashcard {
   english: string;
 }
 
+export interface Evaluation {
+  score: number;
+  feedback: string;
+  percentageFrench: number;
+}
+
 export interface Transcription {
   text: string;
   prompt: Prompt;
   timestamp: string;
   flashcards: Flashcard[];
+  evaluation?: Evaluation;
 }
 
 export interface SessionSettings {

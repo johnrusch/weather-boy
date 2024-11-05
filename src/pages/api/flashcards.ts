@@ -7,18 +7,31 @@ const openai = new OpenAI({
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { text } = await request.json();
+    const body = await request.text();
+    const { text } = JSON.parse(body);
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "You are a French language teacher. Create flashcards from the given text. If the text is in English, translate it to French. If it's in French, provide the English translation. Focus on common conversational phrases and vocabulary. Each flashcard should be a maximum of 6-7 words. Extract as many useful phrases as possible from the text, but keep them natural and conversational."
+          content: `You are a French language teacher creating flashcards. 
+          For each response, you will receive:
+          1. The original response
+          2. An evaluator's feedback with corrections and suggestions
+          
+          Create flashcards that:
+          1. Use the corrected/improved phrases from the evaluator's feedback when available
+          2. Avoid phrases marked as unnatural or incorrect
+          3. Include both simple and complex grammatical structures
+          4. Focus on useful, conversational French
+          5. Prioritize natural, idiomatic expressions
+          
+          When the evaluator suggests better alternatives, use those for the flashcards instead of the original phrases.`
         },
         {
           role: "user",
-          content: `Generate French language flashcards from this text: ${text}`
+          content: `Create French-English flashcard pairs from this content, prioritizing corrected phrases from the evaluator's feedback: ${text}`
         }
       ],
       functions: [
@@ -35,7 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
                   properties: {
                     french: {
                       type: "string",
-                      description: "The French phrase or word"
+                      description: "The French phrase (using corrected versions when available)"
                     },
                     english: {
                       type: "string",
@@ -55,8 +68,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const functionCall = response.choices[0].message.function_call;
     if (functionCall && functionCall.arguments) {
-      const { flashcards } = JSON.parse(functionCall.arguments);
-      return new Response(JSON.stringify({ flashcards }), {
+      return new Response(functionCall.arguments, {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -64,6 +76,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     throw new Error('Failed to generate flashcards');
   } catch (error) {
+    console.error('Error generating flashcards:', error);
     return new Response(JSON.stringify({ error: 'Failed to generate flashcards' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
