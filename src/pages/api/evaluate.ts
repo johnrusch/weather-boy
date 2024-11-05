@@ -11,24 +11,24 @@ const openai = new OpenAI({
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.text();
-    const { text } = JSON.parse(body);
+    const { text, language } = JSON.parse(body);
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: `You are a French language evaluator. Analyze the following response for:
-          1. Percentage of response in French vs other languages
+          content: `You are a ${language === 'spanish' ? 'Spanish' : 'French'} language evaluator. Analyze the following response for:
+          1. Percentage of response in ${language === 'spanish' ? 'Spanish' : 'French'} vs other languages
           2. Grammatical correctness
           3. Natural flow and appropriate vocabulary
           4. Overall effectiveness of communication
           
           Score criteria:
-          0-3: Mostly/all English or other non-French languages
-          4-6: Mix of French and English, with basic French structures
-          7-8: Mostly French with minor errors
-          9-10: Natural, fluent French with proper grammar and vocabulary`
+          0-3: Mostly/all English or other non-${language === 'spanish' ? 'Spanish' : 'French'} languages
+          4-6: Mix of ${language === 'spanish' ? 'Spanish' : 'French'} and English, with basic structures
+          7-8: Mostly ${language === 'spanish' ? 'Spanish' : 'French'} with minor errors
+          9-10: Natural, fluent ${language === 'spanish' ? 'Spanish' : 'French'} with proper grammar and vocabulary`
         },
         {
           role: "user",
@@ -37,8 +37,8 @@ export const POST: APIRoute = async ({ request }) => {
       ],
       functions: [
         {
-          name: "evaluate_french_response",
-          description: "Evaluate a French language response",
+          name: "evaluate_response",
+          description: `Evaluate a ${language === 'spanish' ? 'Spanish' : 'French'} language response`,
           parameters: {
             type: "object",
             properties: {
@@ -52,14 +52,14 @@ export const POST: APIRoute = async ({ request }) => {
               },
               percentageFrench: {
                 type: "number",
-                description: "Percentage of response that was in French (0-100)"
+                description: `Percentage of response that was in ${language === 'spanish' ? 'Spanish' : 'French'} (0-100)`
               }
             },
             required: ["score", "feedback", "percentageFrench"]
           }
         }
       ],
-      function_call: { name: "evaluate_french_response" }
+      function_call: { name: "evaluate_response" }
     });
 
     const functionCall = response.choices[0].message.function_call;

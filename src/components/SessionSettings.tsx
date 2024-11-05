@@ -1,65 +1,68 @@
 import React from 'react';
-import { Settings } from 'lucide-react';
-import { SessionSettings } from '../types/prompt';
+import { SessionSettings, LANGUAGE_CONFIGS, SupportedLanguage } from '../types/prompt';
 
-interface SessionSettingsProps {
+interface SessionSettingsFormProps {
   settings: SessionSettings;
   onSettingsChange: (settings: SessionSettings) => void;
 }
 
-export const SessionSettingsForm: React.FC<SessionSettingsProps> = ({
+export const SessionSettingsForm: React.FC<SessionSettingsFormProps> = ({
   settings,
   onSettingsChange,
 }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const numValue = Math.max(1, parseInt(value) || 1);
+  const handleChange = (field: keyof SessionSettings, value: number | SupportedLanguage) => {
     onSettingsChange({
       ...settings,
-      [name]: numValue,
+      [field]: value,
     });
   };
 
   return (
-    <div className="bg-white/50 backdrop-blur-sm p-6 rounded-xl mb-8">
-      <div className="flex items-center gap-2 mb-4">
-        <Settings className="text-indigo-600" size={20} />
-        <h2 className="text-lg font-semibold text-gray-800">Session Settings</h2>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="promptCount" className="block text-sm font-medium text-gray-700 mb-1">
+    <div className="space-y-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Language
+          </label>
+          <select
+            value={settings.language}
+            onChange={(e) => handleChange('language', e.target.value as SupportedLanguage)}
+            className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          >
+            {Object.entries(LANGUAGE_CONFIGS).map(([key, config]) => (
+              <option key={key} value={key}>
+                {config.name} ({config.displayName})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
             Number of Prompts
           </label>
           <input
             type="number"
-            id="promptCount"
-            name="promptCount"
             min="1"
             max="10"
             value={settings.promptCount}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 
-                     focus:ring-indigo-500 focus:border-indigo-500"
+            onChange={(e) => handleChange('promptCount', parseInt(e.target.value))}
+            className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
-          <p className="mt-1 text-sm text-gray-500">Choose between 1-10 prompts</p>
         </div>
-        <div>
-          <label htmlFor="promptDuration" className="block text-sm font-medium text-gray-700 mb-1">
-            Response Time (minutes)
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Minutes per Prompt
           </label>
           <input
             type="number"
-            id="promptDuration"
-            name="promptDuration"
             min="1"
-            max="15"
+            max="10"
             value={settings.promptDuration}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 
-                     focus:ring-indigo-500 focus:border-indigo-500"
+            onChange={(e) => handleChange('promptDuration', parseInt(e.target.value))}
+            className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
-          <p className="mt-1 text-sm text-gray-500">Choose between 1-15 minutes</p>
         </div>
       </div>
     </div>

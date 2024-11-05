@@ -13,7 +13,7 @@ const DEFAULT_SETTINGS: SessionSettings = {
   promptDuration: 5,
 };
 
-export default function FrenchLearningApp() {
+export default function LanguageLearningApp() {
   const [settings, setSettings] = useState<SessionSettings>(DEFAULT_SETTINGS);
   const [selectedPrompts, setSelectedPrompts] = useState<Prompt[]>([]);
   const [currentPromptIndex, setCurrentPromptIndex] = useState(-1);
@@ -280,7 +280,7 @@ Evaluator's Feedback: ${t.evaluation?.feedback || ''}
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-            French Language Practice Session
+            Language Practice Session
           </h1>
 
           {error && (
@@ -299,7 +299,7 @@ Evaluator's Feedback: ${t.evaluation?.feedback || ''}
                 />
               )}
               <p className="text-gray-600 mb-8">
-                Ready to practice French? You'll receive {settings.promptCount} random prompts,
+                Ready to practice? You'll receive {settings.promptCount} random prompts,
                 with {settings.promptDuration} minutes for each response. Your responses will be automatically
                 transcribed and turned into flashcards.
               </p>

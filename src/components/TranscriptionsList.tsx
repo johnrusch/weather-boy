@@ -16,8 +16,8 @@ const getScoreColor = (score: number) => {
 // Add this new function for downloading selected flashcards
 const downloadSelectedFlashcards = (flashcards: Flashcard[]) => {
   const csvContent = [
-    'French,English', // CSV header
-    ...flashcards.map(card => `"${card.french}","${card.english}"`)
+    'Target Language,English', // Updated CSV header
+    ...flashcards.map(card => `"${card.targetLanguage}","${card.english}"`)
   ].join('\n');
 
   const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -38,7 +38,7 @@ export const TranscriptionsList: React.FC<TranscriptionsListProps> = ({ transcri
   // Get unique flashcards (keeping the same logic)
   const uniqueFlashcards = transcriptions.reduce((cards: Flashcard[], trans) => {
     trans.flashcards.forEach(card => {
-      if (!cards.some(existing => existing.french === card.french)) {
+      if (!cards.some(existing => existing.targetLanguage === card.targetLanguage)) {
         cards.push(card);
       }
     });
@@ -58,7 +58,7 @@ export const TranscriptionsList: React.FC<TranscriptionsListProps> = ({ transcri
 
   const downloadTranscription = (transcription: Transcription, index: number) => {
     const flashcardsCSV = transcription.flashcards
-      .map(card => `"${card.french}","${card.english}"`)
+      .map(card => `"${card.targetLanguage}","${card.english}"`)
       .join('\n');
     
     const content = `Prompt Category: ${transcription.prompt.category}
@@ -99,7 +99,7 @@ Timestamp: ${new Date(t.timestamp).toLocaleString()}
 ${t.text}
 
 Flashcards (French,English):
-${t.flashcards.map(card => `"${card.french}","${card.english}"`).join('\n')}
+${t.flashcards.map(card => `"${card.targetLanguage}","${card.english}"`).join('\n')}
 
 `).join('\n');
 
@@ -224,7 +224,7 @@ ${t.flashcards.map(card => `"${card.french}","${card.english}"`).join('\n')}
                            }`}
                 onClick={() => toggleFlashcardSelection(cardIndex)}
               >
-                <div className="font-medium text-indigo-600 mb-1">{card.french}</div>
+                <div className="font-medium text-indigo-600 mb-1">{card.targetLanguage}</div>
                 <div className="text-gray-600">{card.english}</div>
               </div>
             ))}
