@@ -31,6 +31,20 @@ const downloadSelectedFlashcards = (flashcards: Flashcard[]) => {
   URL.revokeObjectURL(url);
 };
 
+// Add this helper function for flashcard type styling
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case 'correction':
+      return 'text-amber-600 text-xs uppercase tracking-wide';
+    case 'translation':
+      return 'text-blue-600 text-xs uppercase tracking-wide';
+    case 'variation':
+      return 'text-green-600 text-xs uppercase tracking-wide';
+    default:
+      return 'text-gray-600 text-xs uppercase tracking-wide';
+  }
+};
+
 export const TranscriptionsList: React.FC<TranscriptionsListProps> = ({ transcriptions }) => {
   // Add state for selected flashcards
   const [selectedFlashcards, setSelectedFlashcards] = useState<Set<number>>(new Set());
@@ -224,7 +238,8 @@ ${t.flashcards.map(card => `"${card.french}","${card.english}"`).join('\n')}
                            }`}
                 onClick={() => toggleFlashcardSelection(cardIndex)}
               >
-                <div className="font-medium text-indigo-600 mb-1">{card.french}</div>
+                <div className={getTypeColor(card.type)}>{card.type}</div>
+                <div className="font-medium text-indigo-600 mb-1 mt-1">{card.french}</div>
                 <div className="text-gray-600">{card.english}</div>
               </div>
             ))}

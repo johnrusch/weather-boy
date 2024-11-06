@@ -7,6 +7,8 @@ export interface Prompt {
 export interface Flashcard {
   french: string;
   english: string;
+  type: 'correction' | 'translation' | 'variation';
+  originalText?: string;
 }
 
 export interface Evaluation {

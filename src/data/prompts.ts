@@ -94,6 +94,134 @@ export const prompts: PromptWithDifficulty[] = [
     duration: 300,
     category: "Creative",
     difficulty: "advanced"
+  },
+
+  // New Beginner Prompts
+  {
+    text: "Describe your favorite meal. Who prepared it, and why do you love it?",
+    duration: 300,
+    category: "Personal",
+    difficulty: "beginner"
+  },
+  {
+    text: "What's your favorite way to spend a weekend? Describe a perfect day off.",
+    duration: 300,
+    category: "Lifestyle",
+    difficulty: "beginner"
+  },
+  {
+    text: "Talk about a family tradition or a holiday that is special to you.",
+    duration: 300,
+    category: "Culture",
+    difficulty: "beginner"
+  },
+  {
+    text: "If you could adopt any pet, real or imaginary, what would it be and why?",
+    duration: 300,
+    category: "Creative",
+    difficulty: "beginner"
+  },
+  {
+    text: "Describe your favorite place in your hometown and what makes it special.",
+    duration: 300,
+    category: "Personal",
+    difficulty: "beginner"
+  },
+
+  // New Intermediate Prompts
+  {
+    text: "Imagine you could live in any time period. Which one would you choose and why?",
+    duration: 300,
+    category: "Historical",
+    difficulty: "intermediate"
+  },
+  {
+    text: "If you had to explain your personality using only colors, which ones would you choose and why?",
+    duration: 300,
+    category: "Creative",
+    difficulty: "intermediate"
+  },
+  {
+    text: "What's a book, movie, or song that has profoundly influenced you? Describe how it changed your perspective.",
+    duration: 300,
+    category: "Reflection",
+    difficulty: "intermediate"
+  },
+  {
+    text: "If you were given the power to create a law that everyone must follow, what would it be and why?",
+    duration: 300,
+    category: "Societal",
+    difficulty: "intermediate"
+  },
+  {
+    text: "You're given the opportunity to swap lives with a famous person for one week. Who do you choose, and what do you do?",
+    duration: 300,
+    category: "Hypothetical",
+    difficulty: "intermediate"
+  },
+
+  // New Advanced Prompts
+  {
+    text: "If languages had personalities, how would you describe the personality of French compared to another language you know?",
+    duration: 300,
+    category: "Linguistic",
+    difficulty: "advanced"
+  },
+  {
+    text: "Imagine a world where emotions are visible as auras of light. How would this change human interaction?",
+    duration: 300,
+    category: "Philosophical",
+    difficulty: "advanced"
+  },
+  {
+    text: "You're offered the chance to merge two completely unrelated fields of study to create something new. What would you combine, and what would the result be?",
+    duration: 300,
+    category: "Creative",
+    difficulty: "advanced"
+  },
+  {
+    text: "What if every decision you made today was written in the sky for everyone to see? How would it change your actions?",
+    duration: 300,
+    category: "Reflection",
+    difficulty: "advanced"
+  },
+  {
+    text: "Describe a utopia and a dystopia that could arise from the same technological advancement. How do they differ?",
+    duration: 300,
+    category: "Hypothetical",
+    difficulty: "advanced"
+  },
+
+  // Bonus Prompts
+  {
+    text: "You have to explain the internet to someone from the 1800s. What do you say?",
+    duration: 300,
+    category: "Historical",
+    difficulty: "beginner"  // Simplified to single difficulty for implementation
+  },
+  {
+    text: "If animals could form governments, what kind of leader would a cat make? A dog?",
+    duration: 300,
+    category: "Creative",
+    difficulty: "intermediate"  // Chose intermediate as primary difficulty
+  },
+  {
+    text: "Invent a superpower that seems useless at first but could actually be incredibly helpful. Explain its potential.",
+    duration: 300,
+    category: "Hypothetical",
+    difficulty: "beginner"  // Chose beginner as primary difficulty
+  },
+  {
+    text: "You are tasked with designing a theme park based on your favorite subject in school. What attractions would it have?",
+    duration: 300,
+    category: "Creative",
+    difficulty: "beginner"
+  },
+  {
+    text: "What if human memories could be recorded and played back like videos? How would this affect relationships and society?",
+    duration: 300,
+    category: "Philosophical",
+    difficulty: "advanced"
   }
 ];
 

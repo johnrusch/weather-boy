@@ -1,27 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Play, AlertCircle } from 'lucide-react';
-import { Prompt, Transcription, SessionSettings, Flashcard } from './types/prompt';
-import { getRandomPrompts } from './data/prompts';
-import { PromptCard } from './components/PromptCard';
-import { Timer } from './components/Timer';
-import { RecordingStatus } from './components/RecordingStatus';
-import { TranscriptionsList } from './components/TranscriptionsList';
-import { SessionSettingsForm } from './components/SessionSettings';
-import OpenAI from 'openai';
-import FrenchLearningApp from './FrenchLearningApp';
+import { ClerkProvider } from '@clerk/clerk-react';
+import FrenchLearningApp from './components/FrenchLearningApp';
+import AuthLayout from './layouts/AuthLayout';
 
-const API_KEY = import.meta.env.OPENAI_API_KEY;
+const PUBLISHABLE_KEY = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-const openai = new OpenAI({
-  apiKey: API_KEY,
-  dangerouslyAllowBrowser: true
-});
-
-const DEFAULT_SETTINGS: SessionSettings = {
-  promptCount: 4,
-  promptDuration: 5,
-};
+if (!PUBLISHABLE_KEY) {
+  throw new Error('Missing Publishable Key');
+}
 
 export default function App() {
-  return <FrenchLearningApp />;
+  return (
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <AuthLayout>
+        <FrenchLearningApp />
+      </AuthLayout>
+    </ClerkProvider>
+  );
 }

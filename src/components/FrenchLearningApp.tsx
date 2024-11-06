@@ -209,17 +209,13 @@ export default function FrenchLearningApp() {
         });
       }
 
-      // Then generate flashcards from all transcriptions and their evaluations
+      // Then generate flashcards from just the transcriptions
       setProcessingStage('generating');
-      const combinedContent = allTranscriptions
-        .map(t => `
-Prompt ${t.promptIndex + 1}:
-Original Response: ${t.text}
-Evaluator's Feedback: ${t.evaluation?.feedback || ''}
-        `.trim())
+      const combinedText = allTranscriptions
+        .map(t => t.text)
         .join('\n\n');
       
-      const flashcards = await generateFlashcards(combinedContent);
+      const flashcards = await generateFlashcards(combinedText);
 
       // Create transcription entries with evaluations
       allTranscriptions.forEach(({ text, promptIndex, evaluation }) => {
