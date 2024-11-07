@@ -1,6 +1,6 @@
 import { ClerkProvider } from '@clerk/clerk-react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import FrenchLearningApp from './components/FrenchLearningApp';
-import AuthLayout from './layouts/AuthLayout';
 
 const PUBLISHABLE_KEY = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -11,9 +11,7 @@ if (!PUBLISHABLE_KEY) {
 export default function App() {
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <AuthLayout>
-        <FrenchLearningApp />
-      </AuthLayout>
+      <FrenchLearningApp />
     </ClerkProvider>
   );
 }

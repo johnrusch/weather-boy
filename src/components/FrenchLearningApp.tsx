@@ -7,6 +7,7 @@ import { Timer } from './Timer';
 import { RecordingStatus } from './RecordingStatus';
 import { TranscriptionsList } from './TranscriptionsList';
 import { SessionSettingsForm } from './SessionSettings';
+import { FlashcardsList } from './FlashcardsList';
 
 const DEFAULT_SETTINGS: SessionSettings = {
   promptCount: 4,
@@ -199,7 +200,10 @@ export default function FrenchLearningApp() {
         console.log(`Transcription ${i + 1} result:`, transcription);
         
         setProcessingStage('evaluating');
-        const evaluation = await evaluateResponse(transcription);
+        const evaluation = await evaluateResponse(
+          transcription, 
+          selectedPrompts[recording.promptIndex].text
+        );
         console.log(`Evaluation ${i + 1} result:`, evaluation);
         
         allTranscriptions.push({
@@ -252,12 +256,15 @@ export default function FrenchLearningApp() {
     }
   };
 
-  const evaluateResponse = async (transcription: string) => {
+  const evaluateResponse = async (transcription: string, prompt: string) => {
     try {
       const response = await fetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: transcription }),
+        body: JSON.stringify({ 
+          text: transcription,
+          prompt: prompt 
+        }),
       });
 
       if (!response.ok) {
@@ -344,7 +351,15 @@ export default function FrenchLearningApp() {
           )}
 
           {transcriptions.length > 0 && currentPromptIndex === -1 && (
-            <TranscriptionsList transcriptions={transcriptions} />
+            <div className="space-y-8">
+              <TranscriptionsList transcriptions={transcriptions} />
+
+              {transcriptions[0]?.flashcards && (
+                <div className="mt-8 pt-8 border-t">
+                  <FlashcardsList flashcards={transcriptions[0].flashcards} />
+                </div>
+              )}
+            </div>
           )}
 
           {isProcessing && (

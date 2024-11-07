@@ -1,0 +1,13 @@
+---
+import RootLayout from "../layouts/RootLayout.astro";
+import { SavedFlashcards } from "../components/SavedFlashcards";
+---
+
+<RootLayout title="Saved Flashcards">
+  <div class="max-w-7xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Your Saved Flashcards</h2>
+      <SavedFlashcards client:load />
+    </div>
+  </div>
+</RootLayout> 

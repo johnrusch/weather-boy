@@ -11,28 +11,37 @@ const openai = new OpenAI({
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.text();
-    const { text } = JSON.parse(body);
+    const { text, prompt } = JSON.parse(body);
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: `You are a French language evaluator. Analyze the following response for:
-          1. Percentage of response in French vs other languages
-          2. Grammatical correctness
-          3. Natural flow and appropriate vocabulary
-          4. Overall effectiveness of communication
+          content: `You are a French language evaluator. For each response, consider:
+
+          1. Relevance to Prompt (30% of score):
+          - How well the response addresses the given prompt
+          - Depth and thoughtfulness of the answer
+          - Appropriate level of detail
+
+          2. Language Usage (70% of score):
+          - Percentage of response in French vs other languages
+          - Grammatical correctness
+          - Natural flow and appropriate vocabulary
+          - Overall effectiveness of communication
           
           Score criteria:
-          0-3: Mostly/all English or other non-French languages
-          4-6: Mix of French and English, with basic French structures
-          7-8: Mostly French with minor errors
-          9-10: Natural, fluent French with proper grammar and vocabulary`
+          0-3: Mostly English or minimal French, and/or doesn't address prompt
+          4-6: Mix of French and English, basic French structures, partially addresses prompt
+          7-8: Mostly French with minor errors, good response to prompt
+          9-10: Natural, fluent French with proper grammar, excellent response to prompt`
         },
         {
           role: "user",
-          content: `Evaluate this response: "${text}"`
+          content: `Evaluate this response to the prompt: "${prompt}"
+
+Response: "${text}"`
         }
       ],
       functions: [
@@ -44,18 +53,22 @@ export const POST: APIRoute = async ({ request }) => {
             properties: {
               score: {
                 type: "number",
-                description: "Score from 0-10"
+                description: "Overall score from 0-10"
               },
               feedback: {
                 type: "string",
-                description: "Detailed feedback about the response"
+                description: "Detailed feedback about both language use and response to prompt"
               },
               percentageFrench: {
                 type: "number",
                 description: "Percentage of response that was in French (0-100)"
+              },
+              promptRelevance: {
+                type: "string",
+                description: "How well the response addresses the prompt"
               }
             },
-            required: ["score", "feedback", "percentageFrench"]
+            required: ["score", "feedback", "percentageFrench", "promptRelevance"]
           }
         }
       ],

@@ -15,6 +15,7 @@ export interface Evaluation {
   score: number;
   feedback: string;
   percentageFrench: number;
+  promptRelevance: string;
 }
 
 export interface Transcription {
