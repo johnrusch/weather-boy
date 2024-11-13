@@ -6,9 +6,13 @@ import { $authStore, $userStore } from '@clerk/astro/client';
 
 interface FlashcardsListProps {
   flashcards: Flashcard[];
+  promptId?: string;
 }
 
-export const FlashcardsList: React.FC<FlashcardsListProps> = ({ flashcards: initialFlashcards }) => {
+export const FlashcardsList: React.FC<FlashcardsListProps> = ({ 
+  flashcards: initialFlashcards,
+  promptId
+}) => {
   const auth = useStore($authStore);
   const user = useStore($userStore);
   
@@ -32,7 +36,8 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({ flashcards: init
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           flashcards: cardsToSave,
-          tags: ['session']
+          tags: ['session'],
+          promptId
         }),
       });
 

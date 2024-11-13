@@ -14,16 +14,25 @@ async function resetSchema() {
     await mongoose.connect(uri);
     console.log('Connected successfully');
 
-    console.log('Dropping SavedFlashcard collection...');
-    await mongoose.connection.db.dropCollection('savedflashcards');
-    console.log('Collection dropped successfully');
+    const db = mongoose.connection.db;
+    if (!db) {
+      throw new Error('Failed to get database connection');
+    }
+
+    console.log('Dropping flashcard collection...');
+    try {
+      await db.dropCollection('flashcard');
+      console.log('Collection dropped successfully');
+    } catch (err: any) {
+      if (err.code === 26) {
+        console.log('Collection does not exist, nothing to drop');
+      } else {
+        throw err;
+      }
+    }
 
   } catch (error) {
-    if ((error as any).code === 26) {
-      console.log('Collection does not exist, nothing to drop');
-    } else {
-      console.error('Error:', error);
-    }
+    console.error('Error:', error);
   } finally {
     await mongoose.disconnect();
     console.log('Disconnected from MongoDB');

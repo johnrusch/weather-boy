@@ -1,5 +1,4 @@
 import { ClerkProvider } from '@clerk/clerk-react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import FrenchLearningApp from './components/FrenchLearningApp';
 
 const PUBLISHABLE_KEY = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
