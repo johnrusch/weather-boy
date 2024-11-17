@@ -1,7 +1,6 @@
 ---
 import RootLayout from "../layouts/RootLayout.astro";
-import FrenchLearningApp from "../components/FrenchLearningApp";
-import { ClerkProvider } from '@clerk/clerk-react';
+import AuthWrapper from "../components/AuthWrapper";
 
 const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
 if (!publishableKey) {
@@ -10,7 +9,14 @@ if (!publishableKey) {
 ---
 
 <RootLayout title="French Learning App">
-  <ClerkProvider publishableKey={publishableKey} client:load>
-    <FrenchLearningApp client:load />
-  </ClerkProvider>
+  <main>
+    <AuthWrapper client:only="react" publishableKey={publishableKey} />
+  </main>
 </RootLayout>
+
+<style>
+  main {
+    width: 100%;
+    height: 100%;
+  }
+</style>
