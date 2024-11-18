@@ -10,15 +10,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     const body = await request.text();
-    const { flashcards, tags = [] } = JSON.parse(body);
+    const { flashcards, tags = [], promptId = null } = JSON.parse(body);
 
-    // Connect to MongoDB using our utility
+    console.log('Received request body:', { flashcards, tags, promptId });
+    console.log('User ID:', auth.userId);
+
     await connectDB();
 
-    // Save each flashcard, checking for duplicates
     const savedFlashcards = await Promise.all(
       flashcards.map(async (flashcard: any) => {
-        // Check if this flashcard already exists for this user
+        console.log('Processing flashcard:', flashcard);
+
         const existingCard = await Flashcard.findOne({
           userId: auth.userId,
           french: flashcard.french,
@@ -27,21 +29,26 @@ export const POST: APIRoute = async ({ request, locals }) => {
         });
 
         if (existingCard) {
+          console.log('Found existing card:', existingCard);
           return {
             ...existingCard.toObject(),
             alreadyExists: true
           };
         }
 
-        // If no duplicate found, save the new flashcard
-        const savedCard = await new Flashcard({
+        const newCard = new Flashcard({
           userId: auth.userId,
           french: flashcard.french,
           english: flashcard.english,
           type: flashcard.type,
           originalText: flashcard.originalText,
+          promptId: promptId,
           tags
-        }).save();
+        });
+
+        console.log('Created new card document:', newCard);
+        const savedCard = await newCard.save();
+        console.log('Successfully saved card:', savedCard);
 
         return {
           ...savedCard.toObject(),
@@ -50,9 +57,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
       })
     );
 
-    // Count new and duplicate cards
     const newCards = savedFlashcards.filter(card => !card.alreadyExists);
     const duplicates = savedFlashcards.filter(card => card.alreadyExists);
+
+    console.log('Operation summary:', {
+      totalCards: savedFlashcards.length,
+      newCards: newCards.length,
+      duplicates: duplicates.length
+    });
 
     return new Response(JSON.stringify({
       savedFlashcards,
@@ -64,6 +76,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   } catch (error) {
     console.error('Error saving flashcards:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+    }
     return new Response(JSON.stringify({ 
       error: 'Failed to save flashcards',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -82,7 +101,6 @@ export const GET: APIRoute = async ({ request, locals }) => {
     const tag = url.searchParams.get('tag');
     const favorite = url.searchParams.get('favorite');
 
-    // Connect to MongoDB using our utility
     await connectDB();
 
     let query: any = { userId: auth.userId };

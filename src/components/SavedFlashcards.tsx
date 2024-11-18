@@ -35,8 +35,8 @@ export const SavedFlashcards: React.FC = () => {
       
       // Extract unique tags
       const uniqueTags = Array.from(
-        new Set(data.flatMap((card: SavedFlashcard) => card.tags))
-      );
+        new Set(data.flatMap((card: SavedFlashcard) => card.tags || []))
+      ).filter((tag): tag is string => typeof tag === 'string');
       setTags(uniqueTags);
     } catch (error) {
       console.error('Error fetching flashcards:', error);

@@ -183,6 +183,7 @@ export default function FrenchLearningApp() {
         score: number;
         feedback: string;
         percentageFrench: number;
+        promptRelevance: string;
       }
     }[] = [];
     
@@ -228,7 +229,12 @@ export default function FrenchLearningApp() {
           prompt: selectedPrompts[promptIndex],
           timestamp: new Date().toISOString(),
           flashcards,
-          evaluation
+          evaluation: evaluation ? {
+            score: evaluation.score,
+            feedback: evaluation.feedback,
+            percentageFrench: evaluation.percentageFrench,
+            promptRelevance: evaluation.promptRelevance || 'Not evaluated'
+          } : undefined
         }]);
       });
 
