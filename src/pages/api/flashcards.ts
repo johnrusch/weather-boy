@@ -10,57 +10,71 @@ export const POST: APIRoute = async ({ request }) => {
     const body = await request.text();
     const { text } = JSON.parse(body);
 
+    if (!text || typeof text !== 'string') {
+      return new Response(JSON.stringify({ error: 'Missing or invalid text' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: `You are a French language teacher creating flashcards from a student's response. 
-          The response will contain:
-          1. Attempted French phrases (which may need correction)
-          2. English phrases (which the student wants to know how to say in French)
-          3. Mixed language expressions
-          
-          Rules for creating flashcards:
-          1. For English phrases (type: "translation"):
-             - Create natural French translations
-             - Focus on how a native speaker would express the idea
-             - Include the most common/useful way to say it
-          
-          2. For attempted French phrases (type: "correction"):
-             - Identify and fix grammatical errors
-             - Correct word choice and structure
-             - Include the original attempt for reference
-             - Show proper French phrasing
-          
-          3. For variations (type: "variation"):
-             - Provide alternative ways to express similar ideas
-             - Include common expressions and idioms
-             - Show different grammatical structures
-             - Keep related to the original context
-          
-          Keep all phrases between 2-8 words for easy learning.
-          
-          Examples:
-          1. Translation:
-             English: "my alter ego would be"
-             French: "mon alter ego serait"
-          
-          2. Correction:
-             Original: "j'ai le pouvoir à remarquer"
-             Corrected: "j'ai le pouvoir de remarquer"
-             Also: "je peux remarquer"
-          
-          3. Variation:
-             Context: "where I see a square"
-             Variations: 
-               - "où je vois un carré"
-               - "quand j'aperçois un carré"
-               - "lorsque je remarque un carré"`
+          content: `You are a French language teacher creating flashcards from student responses. Your goal is to create practical, conversational flashcards that focus on short, natural phrases (3-9 words).
+
+Key Rules:
+1. Keep ALL phrases between 3-9 words
+2. Focus on natural, conversational expressions
+3. Prioritize high-frequency, practical phrases
+4. Make corrections brief and memorable
+
+Create 5 types of flashcards:
+
+1. Corrections (if needed):
+   - Fix errors concisely
+   - Show the natural way to express the idea
+   Example:
+   Wrong: "Je suis allé au le magasin"
+   Right: "Je suis allé au magasin"
+
+2. Alternative Expressions:
+   - Show different ways to express the same idea
+   - Keep variations natural and common
+   Example:
+   Original: "Je voudrais un café"
+   Variations: "Je prendrais un café"
+
+3. Key Phrases:
+   - Extract useful phrases from the prompt
+   - Focus on everyday expressions
+   Example:
+   "Comment allez-vous aujourd'hui?"
+
+4. Related Expressions:
+   - Add common phrases in the same context
+   - Keep them practical and frequent
+   Example:
+   Context: Ordering coffee
+   Related: "Un café crème, s'il vous plaît"
+
+5. Essential Vocabulary:
+   - Include key words in short phrases
+   - Show common usage
+   Example:
+   Word: café
+   Phrase: "On va prendre un café?"
+
+Remember:
+- EVERY phrase must be 3-9 words
+- Focus on natural conversation
+- Prioritize high-frequency expressions
+- Keep it simple and practical`
         },
         {
           role: "user",
-          content: `Create flashcards from this response, providing corrections and translations: ${text}`
+          content: text
         }
       ],
       functions: [
@@ -88,13 +102,14 @@ export const POST: APIRoute = async ({ request }) => {
                       enum: ["correction", "translation", "variation"],
                       description: "The type of flashcard"
                     },
-                    originalText: {
+                    notes: {
                       type: "string",
-                      description: "The original text being corrected (for correction type only)"
+                      description: "Optional notes about usage, pronunciation, or context"
                     }
                   },
                   required: ["french", "english", "type"]
-                }
+                },
+                minItems: 5
               }
             },
             required: ["flashcards"]
@@ -105,14 +120,72 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     const functionCall = response.choices[0].message.function_call;
-    if (functionCall && functionCall.arguments) {
-      return new Response(functionCall.arguments, {
+    if (!functionCall || !functionCall.arguments) {
+      console.error('No function call or arguments in response:', response);
+      throw new Error('Failed to generate flashcards - no function call data');
+    }
+
+    let parsedArgs;
+    try {
+      parsedArgs = JSON.parse(functionCall.arguments);
+      console.log('Parsed flashcard arguments:', parsedArgs);
+    } catch (parseError) {
+      console.error('Failed to parse function call arguments:', functionCall.arguments);
+      console.error('Parse error:', parseError);
+      throw new Error('Failed to parse flashcard data');
+    }
+
+    if (!parsedArgs.flashcards || !Array.isArray(parsedArgs.flashcards)) {
+      console.error('Invalid flashcards format:', parsedArgs);
+      throw new Error('Invalid flashcards format');
+    }
+
+    // Validate and clean each flashcard
+    const validatedFlashcards = parsedArgs.flashcards
+      .map(card => {
+        if (!card || typeof card !== 'object') return null;
+        
+        // Convert fields to strings and trim
+        const french = String(card.french || '').trim();
+        const english = String(card.english || '').trim();
+        const type = String(card.type || 'translation').trim();
+        
+        // Validate word count
+        const wordCount = french.split(/\s+/).length;
+        if (wordCount < 3 || wordCount > 9) {
+          console.log(`Skipping card with ${wordCount} words:`, card);
+          return null;
+        }
+
+        return {
+          french,
+          english,
+          type: ['correction', 'translation', 'variation'].includes(type) ? type : 'translation',
+          notes: card.notes ? String(card.notes).trim() : undefined
+        };
+      })
+      .filter(card => card && card.french && card.english);
+
+    if (validatedFlashcards.length === 0) {
+      console.warn('No valid flashcards after validation');
+      // Return a minimal set of valid flashcards
+      return new Response(JSON.stringify({
+        flashcards: [{
+          french: text.split('\n')[0].trim(),
+          english: "Practice this phrase",
+          type: "translation"
+        }]
+      }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    throw new Error('Failed to generate flashcards');
+    console.log('Returning validated flashcards:', validatedFlashcards);
+    return new Response(JSON.stringify({ flashcards: validatedFlashcards }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (error) {
     console.error('Error generating flashcards:', error);
     return new Response(JSON.stringify({ error: 'Failed to generate flashcards' }), {

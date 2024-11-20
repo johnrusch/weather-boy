@@ -3,6 +3,16 @@
 ## Overview
 Implement a structured learning progression system ("Campaign Mode") while maintaining the existing free-form practice functionality. The system will organize French language prompts into progressive levels and track user advancement through these levels.
 
+## Core Philosophy
+The app focuses on teaching conversational French through short, natural phrases (3-9 words) that form the building blocks of everyday communication. Rather than teaching isolated vocabulary or complex grammar rules, we emphasize learning through practical, commonly-used expressions.
+
+## Design Principles
+1. **Short and Sweet**: All phrases, both prompts and flashcards, should be 3-9 words long to match natural conversation patterns.
+2. **Practical First**: Focus on high-frequency expressions that native speakers actually use.
+3. **Progressive Learning**: Start with basic expressions and gradually build complexity.
+4. **Immediate Feedback**: Provide quick, actionable feedback on pronunciation and usage.
+5. **Spaced Repetition**: Use flashcards to reinforce learning of key phrases and expressions.
+
 ## Core Features
 
 ### 1. Practice Modes
