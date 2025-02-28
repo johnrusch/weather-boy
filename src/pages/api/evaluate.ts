@@ -8,38 +8,76 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true
 });
 
-const getLevelSpecificPrompt = (levelId: number) => {
-  const basePrompt = `You are a French language teacher evaluating a student's spoken response. 
+const getLanguageSpecificPrompt = (language: string, levelId: number) => {
+  // Base prompt for French
+  const frenchBasePrompt = `You are a French language teacher evaluating a student's spoken response. 
   Analyze the following aspects:
   1. Pronunciation and accent (30 points)
   2. Grammar and sentence structure (30 points)
   3. Vocabulary usage and appropriateness (20 points)
   4. Response relevance to prompt (20 points)`;
+  
+  // Base prompt for Spanish
+  const spanishBasePrompt = `You are a Spanish language teacher evaluating a student's spoken response. 
+  Analyze the following aspects:
+  1. Pronunciation and accent (30 points)
+  2. Grammar and sentence structure (30 points)
+  3. Vocabulary usage and appropriateness (20 points)
+  4. Response relevance to prompt (20 points)`;
+  
+  // Select the appropriate base prompt
+  const basePrompt = language === 'spanish' ? spanishBasePrompt : frenchBasePrompt;
 
-  switch (levelId) {
-    case 1:
-      return `${basePrompt}
-      For Level 1 (Basic Introductions), focus on:
-      - Basic pronunciation of common French sounds
-      - Simple present tense usage
-      - Essential vocabulary for introductions
-      - Clear communication of basic information`;
-    case 2:
-      return `${basePrompt}
-      For Level 2 (Home and Family), focus on:
-      - Accurate pronunciation of family-related terms
-      - Possessive adjectives and basic descriptions
-      - Family and home-related vocabulary
-      - Logical flow of family descriptions`;
-    default:
-      return basePrompt;
+  // For French
+  if (language === 'french') {
+    switch (levelId) {
+      case 1:
+        return `${basePrompt}
+        For Level 1 (Basic Introductions), focus on:
+        - Basic pronunciation of common French sounds
+        - Simple present tense usage
+        - Essential vocabulary for introductions
+        - Clear communication of basic information`;
+      case 2:
+        return `${basePrompt}
+        For Level 2 (Home and Family), focus on:
+        - Accurate pronunciation of family-related terms
+        - Possessive adjectives and basic descriptions
+        - Family and home-related vocabulary
+        - Logical flow of family descriptions`;
+      default:
+        return basePrompt;
+    }
+  } 
+  // For Spanish
+  else if (language === 'spanish') {
+    switch (levelId) {
+      case 1:
+        return `${basePrompt}
+        For Level 1 (Basic Introductions), focus on:
+        - Basic pronunciation of common Spanish sounds
+        - Simple present tense usage
+        - Essential vocabulary for introductions
+        - Clear communication of basic information`;
+      case 2:
+        return `${basePrompt}
+        For Level 2 (Home and Family), focus on:
+        - Accurate pronunciation of family-related terms
+        - Possessive adjectives and basic descriptions
+        - Family and home-related vocabulary
+        - Logical flow of family descriptions`;
+      default:
+        return basePrompt;
+    }
   }
+  
+  return basePrompt;
 };
 
 const functions = [
   {
-    name: "evaluate_french_response",
-    description: "Evaluate a French language response",
+    name: "evaluate_language_response",
+    description: "Evaluate a language response",
     parameters: {
       type: "object",
       properties: {
@@ -49,92 +87,71 @@ const functions = [
         },
         feedback: {
           type: "string",
-          description: "Constructive feedback for the student"
+          description: "Specific feedback for the student's response"
         },
-        percentageFrench: {
+        percentageTargetLanguage: {
           type: "number",
-          description: "Percentage of response that was in French (0-100)"
+          description: "Estimated percentage of response that was in the target language (0-100)"
         },
         promptRelevance: {
           type: "string",
-          description: "How relevant the response was to the prompt (High/Medium/Low)"
-        },
-        details: {
-          type: "object",
-          properties: {
-            pronunciation: {
-              type: "number",
-              description: "Pronunciation score (0-30)"
-            },
-            grammar: {
-              type: "number",
-              description: "Grammar score (0-30)"
-            },
-            vocabulary: {
-              type: "number",
-              description: "Vocabulary score (0-20)"
-            },
-            relevance: {
-              type: "number",
-              description: "Relevance score (0-20)"
-            }
-          },
-          required: ["pronunciation", "grammar", "vocabulary", "relevance"]
+          description: "Assessment of how relevant the response was to the prompt (highly relevant, somewhat relevant, not relevant)"
         }
       },
-      required: ["score", "feedback", "percentageFrench", "promptRelevance", "details"]
+      required: ["score", "feedback", "percentageTargetLanguage", "promptRelevance"]
     }
   }
 ];
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const body = await request.text();
-    const { transcription, prompt, mode, levelId } = JSON.parse(body);
+    const body = await request.json();
+    const { transcription, promptText, language = 'french', levelId = 0 } = body;
 
-    if (!transcription || !prompt) {
-      return new Response(JSON.stringify({ error: 'Missing transcription or prompt' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    const evaluationPrompt = mode === 'campaign'
-      ? getLevelSpecificPrompt(levelId)
-      : `You are a French language teacher evaluating a student's spoken response.
-         Analyze the response for accuracy, fluency, and relevance.`;
+    const systemPrompt = getLanguageSpecificPrompt(language, levelId);
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
-        { 
-          role: "system", 
-          content: evaluationPrompt
+        {
+          role: "system",
+          content: systemPrompt
         },
         {
           role: "user",
-          content: `Prompt: ${prompt}\nStudent's response: ${transcription}\n\nProvide a detailed evaluation with specific scores for each category and constructive feedback. Include the percentage of the response that was in French and how relevant it was to the prompt.`
+          content: `Prompt: ${promptText}\nStudent's Response: ${transcription}`
         }
       ],
-      functions,
-      function_call: { name: "evaluate_french_response" }
+      functions: functions,
+      function_call: { name: "evaluate_language_response" }
     });
 
     const functionCall = response.choices[0].message.function_call;
-    if (!functionCall || !functionCall.arguments) {
-      throw new Error('Failed to get evaluation');
+    
+    if (!functionCall) {
+      return new Response(JSON.stringify({ error: "No function call in response" }), {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
     }
 
-    const evaluation = JSON.parse(functionCall.arguments);
-    return new Response(JSON.stringify(evaluation), {
+    const evaluationResult = JSON.parse(functionCall.arguments);
+    
+    return new Response(JSON.stringify(evaluationResult), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        "Content-Type": "application/json"
+      }
     });
   } catch (error) {
-    console.error('Error in evaluation:', error);
-    return new Response(JSON.stringify({ error: 'Failed to evaluate response' }), {
+    console.error("Error evaluating response:", error);
+    return new Response(JSON.stringify({ error: "Failed to evaluate response" }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        "Content-Type": "application/json"
+      }
     });
   }
-}
+};

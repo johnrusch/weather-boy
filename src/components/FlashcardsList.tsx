@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, BookmarkPlus, Check, Loader2, X } from 'lucide-react';
 import { Flashcard } from '../types/prompt';
 import { useStore } from '@nanostores/react';
@@ -7,109 +7,115 @@ import { $authStore, $userStore } from '@clerk/astro/client';
 interface FlashcardsListProps {
   flashcards: Flashcard[];
   promptId?: string;
+  language?: string;
+  showSaveButton?: boolean;
 }
 
-export const FlashcardsList: React.FC<FlashcardsListProps> = ({ 
-  flashcards: initialFlashcards,
-  promptId
+export const FlashcardsList: React.FC<FlashcardsListProps> = ({
+  flashcards,
+  promptId,
+  language = 'french',
+  showSaveButton = true
 }) => {
   const auth = useStore($authStore);
   const user = useStore($userStore);
-  
-  const [flashcards, setFlashcards] = useState<Flashcard[]>(initialFlashcards);
-  const [selectedCards, setSelectedCards] = useState<Set<number>>(new Set());
-  const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const { userId } = user;
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+  const [selectedFlashcards, setSelectedFlashcards] = useState<Flashcard[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedFlashcards(
+      flashcards.map((card) => ({
+        ...card,
+        isSelected: true,
+      }))
+    );
+  }, [flashcards]);
+
+  const toggleFlashcard = (index: number) => {
+    setSelectedFlashcards((prev) =>
+      prev.map((card, i) =>
+        i === index ? { ...card, isSelected: !card.isSelected } : card
+      )
+    );
   };
 
-  const saveFlashcards = async (cardsToSave: Flashcard[]) => {
-    if (!auth?.userId) return;
-    
-    setSavingStatus('saving');
+  const saveFlashcards = async () => {
+    if (!userId) {
+      setSaveResult("You must be logged in to save flashcards");
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveResult(null);
+
     try {
-      const response = await fetch('/api/saved-flashcards', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          flashcards: cardsToSave,
-          tags: ['session'],
+      const selected = selectedFlashcards.filter((card) => card.isSelected);
+      
+      if (selected.length === 0) {
+        setSaveResult("No flashcards selected");
+        setIsSaving(false);
+        return;
+      }
+
+      const response = await fetch("/api/saved-flashcards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          flashcards: selected.map((card) => ({
+            ...card,
+            language, // Include the language
+            userId
+          })),
           promptId
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Server error:', errorData);
-        throw new Error(errorData.details || 'Failed to save flashcards');
-      }
-      
       const data = await response.json();
-      setSavingStatus('success');
-      
-      const savedCardIndices = cardsToSave.map(card => 
-        flashcards.findIndex(f => 
-          f.french === card.french && 
-          f.english === card.english && 
-          f.type === card.type
-        )
-      );
 
-      setFlashcards(current => 
-        current.filter((_, index) => !savedCardIndices.includes(index))
-      );
-      setSelectedCards(new Set());
-
-      if (data.summary.duplicates > 0) {
-        if (data.summary.newCards > 0) {
-          showToast(
-            `Saved ${data.summary.newCards} new flashcard${data.summary.newCards === 1 ? '' : 's'}, ` +
-            `${data.summary.duplicates} already existed`,
-            'success'
-          );
-        } else {
-          showToast(`All ${data.summary.duplicates} flashcards already saved`, 'error');
-        }
-      } else {
-        showToast(
-          `Successfully saved ${data.summary.newCards} flashcard${data.summary.newCards === 1 ? '' : 's'}`,
-          'success'
+      if (response.ok) {
+        setSaveResult(`Successfully saved ${selected.length} flashcards`);
+        // Deselect all flashcards
+        setSelectedFlashcards((prev) =>
+          prev.map((card) => ({ ...card, isSelected: false }))
         );
+      } else {
+        setSaveResult(`Error: ${data.error || "Failed to save flashcards"}`);
       }
-
-      setTimeout(() => setSavingStatus('idle'), 2000);
     } catch (error) {
-      console.error('Error saving flashcards:', error);
-      setSavingStatus('error');
-      showToast('Failed to save flashcards', 'error');
-      setTimeout(() => setSavingStatus('idle'), 2000);
+      console.error("Error saving flashcards:", error);
+      setSaveResult("An error occurred while saving flashcards");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const toggleCardSelection = (index: number) => {
-    const newSelected = new Set(selectedCards);
-    if (newSelected.has(index)) {
-      newSelected.delete(index);
-    } else {
-      newSelected.add(index);
+  const handleDownloadCSV = () => {
+    const selected = selectedFlashcards.filter((card) => card.isSelected);
+    
+    if (selected.length === 0) {
+      setSaveResult("No flashcards selected for download");
+      return;
     }
-    setSelectedCards(newSelected);
-  };
-
-  const downloadCSV = () => {
-    const csvContent = [
-      'French,English',
-      ...flashcards.map(card => `"${card.french}","${card.english}"`)
-    ].join('\n');
-
+    
+    const languageCapitalized = language.charAt(0).toUpperCase() + language.slice(1);
+    let csvContent = `${languageCapitalized},English,Type\n`;
+    
+    selected.forEach(card => {
+      // Safely handle quotes in the text fields
+      const targetLanguage = card.targetLanguage?.replace(/"/g, '""') || card.french?.replace(/"/g, '""') || '';
+      const english = card.english.replace(/"/g, '""');
+      
+      csvContent += `"${targetLanguage}","${english}","${card.type}"\n`;
+    });
+    
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', 'french_flashcards.csv');
+    link.setAttribute('download', `${languageCapitalized}_Flashcards_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -118,101 +124,89 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
   return (
     <div className="mt-4 relative">
       {/* Toast Notification */}
-      {toast && (
-        <div
-          className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 transition-all transform translate-y-0
-            ${toast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+      {saveResult && (
+        <div 
+          className={`absolute top-0 right-0 p-3 rounded shadow-md z-50 ${
+            saveResult.startsWith('Successfully') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }`}
         >
-          {toast.type === 'success' ? (
-            <Check size={20} />
-          ) : (
-            <X size={20} />
-          )}
-          {toast.message}
+          {saveResult}
         </div>
       )}
 
       <div className="flex justify-between items-center mb-3">
-        <h4 className="text-lg font-semibold text-gray-700">Generated Flashcards</h4>
-        <div className="flex gap-2">
-          {!auth?.userId && <span className="text-sm text-red-500">No user found</span>}
-          {auth?.userId && (
-            <>
-              <button
-                onClick={() => saveFlashcards(flashcards)}
-                disabled={savingStatus === 'saving'}
-                className="inline-flex items-center px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg
-                         hover:bg-indigo-700 transition-colors gap-1.5 disabled:opacity-50"
-              >
-                {savingStatus === 'saving' ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : savingStatus === 'success' ? (
-                  <Check size={16} />
-                ) : (
-                  <BookmarkPlus size={16} />
-                )}
-                Save All
-              </button>
-              {selectedCards.size > 0 && (
-                <button
-                  onClick={() => saveFlashcards(
-                    Array.from(selectedCards).map(index => flashcards[index])
-                  )}
-                  disabled={savingStatus === 'saving'}
-                  className="inline-flex items-center px-3 py-1.5 text-sm border border-indigo-600 
-                           text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors gap-1.5
-                           disabled:opacity-50"
-                >
-                  <BookmarkPlus size={16} />
-                  Save Selected ({selectedCards.size})
-                </button>
+        <h3 className="text-xl font-bold">Flashcards</h3>
+        <div className="flex space-x-2">
+          {showSaveButton && userId && (
+            <button 
+              onClick={saveFlashcards}
+              disabled={isSaving}
+              className={`px-3 py-1 rounded text-sm flex items-center ${
+                isSaving ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <BookmarkPlus className="mr-1 h-4 w-4" />
+                  Save Selected
+                </>
               )}
-            </>
+            </button>
           )}
-          <button
-            onClick={downloadCSV}
-            className="inline-flex items-center px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg
-                     hover:bg-green-700 transition-colors gap-1.5"
+          <button 
+            onClick={handleDownloadCSV}
+            className="bg-green-600 text-white px-3 py-1 rounded text-sm flex items-center hover:bg-green-700"
           >
-            <Download size={16} />
+            <Download className="mr-1 h-4 w-4" />
             Download CSV
           </button>
         </div>
       </div>
-      {flashcards.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          All flashcards have been saved!
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-2">
-          {flashcards.map((card, index) => (
-            <div
-              key={index}
-              onClick={() => toggleCardSelection(index)}
-              className={`flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-lg cursor-pointer
-                         transition-colors ${
-                           selectedCards.has(index)
-                             ? 'bg-indigo-50 border-2 border-indigo-500'
-                             : 'bg-green-50 border border-green-100 hover:border-green-200'
-                         }`}
+
+      {flashcards.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {selectedFlashcards.map((card, index) => (
+            <div 
+              key={index} 
+              className={`border rounded-lg p-4 relative ${
+                card.isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+              }`}
             >
-              <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
-                <span className="font-medium text-green-800">{card.french}</span>
-                <span className="text-gray-400 hidden sm:inline">→</span>
-                <span className="text-gray-600">{card.english}</span>
+              {userId && (
+                <button 
+                  onClick={() => toggleFlashcard(index)}
+                  className={`absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center ${
+                    card.isSelected 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                >
+                  {card.isSelected ? <Check size={14} /> : '+'}
+                </button>
+              )}
+              
+              <div className="mb-2">
+                <span className="text-xs text-gray-500 uppercase">{card.type}</span>
+                <span className="font-medium text-green-800">{card.targetLanguage}</span>
+                <p className="text-gray-800 mt-1">{card.english}</p>
               </div>
-              {card.type && (
-                <span className={`text-xs px-2 py-1 rounded ${
-                  card.type === 'correction' ? 'bg-amber-100 text-amber-800' :
-                  card.type === 'translation' ? 'bg-blue-100 text-blue-800' :
-                  'bg-green-100 text-green-800'
-                }`}>
-                  {card.type}
-                </span>
+              
+              {card.originalText && (
+                <div className="mt-2 text-sm">
+                  <span className="text-xs text-gray-500">Original:</span>
+                  <p className="text-gray-600 italic">{card.originalText}</p>
+                </div>
               )}
             </div>
           ))}
         </div>
+      ) : (
+        <p className="text-gray-500">No flashcards generated yet.</p>
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { connectDB } from '../../lib/db';
+import { connectDB, isOffline } from '../../lib/db';
 import { Flashcard } from '../../models/flashcard';
 
 export const POST: APIRoute = async ({ request, locals }) => {
@@ -9,13 +9,24 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
+    const connected = await connectDB();
+    if (!connected || isOffline()) {
+      console.log('Returning error in offline mode');
+      return new Response(JSON.stringify({
+        error: 'Running in offline mode - flashcards not saved',
+      }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
     const body = await request.text();
     const { flashcards, tags = [], promptId = null } = JSON.parse(body);
 
     console.log('Received request body:', { flashcards, tags, promptId });
     console.log('User ID:', auth.userId);
-
-    await connectDB();
 
     const savedFlashcards = await Promise.all(
       flashcards.map(async (flashcard: any) => {
@@ -97,11 +108,23 @@ export const GET: APIRoute = async ({ request, locals }) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
+    const connected = await connectDB();
+    if (!connected || isOffline()) {
+      console.log('Returning empty flashcards in offline mode');
+      return new Response(JSON.stringify({
+        message: 'Running in offline mode',
+        flashcards: []
+      }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
     const url = new URL(request.url);
     const tag = url.searchParams.get('tag');
     const favorite = url.searchParams.get('favorite');
-
-    await connectDB();
 
     let query: any = { userId: auth.userId };
     if (tag) query['tags'] = tag;

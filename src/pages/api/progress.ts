@@ -1,13 +1,33 @@
 import type { APIRoute } from 'astro';
-import { connectDB } from '../../lib/db';
+import { connectDB, isOffline } from '../../lib/db';
 import { UserProgress } from '../../models/UserProgress';
 
-export const GET: APIRoute = async ({ request }) => {
-  await connectDB();
-  const userId = 'test-user'; // For now, we'll use a default test user
+export const GET: APIRoute = async () => {
+  const connected = await connectDB();
+  
+  // If in offline mode, return mock data
+  if (!connected || isOffline()) {
+    console.log('Returning mock progress data in offline mode');
+    return new Response(JSON.stringify({
+      message: 'Running in offline mode',
+      campaignProgress: {
+        currentLevel: 1,
+        completedLevels: [],
+        bestScores: {}
+      }
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
 
   try {
+    // Real DB query when connected
+    const userId = 'test-user'; // For now, we'll use a default test user
     const userProgress = await UserProgress.findOne({ userId });
+
     if (!userProgress) {
       return new Response(JSON.stringify({ error: 'User progress not found' }), {
         status: 404,
@@ -52,10 +72,25 @@ export const GET: APIRoute = async ({ request }) => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
-  await connectDB();
-  const userId = 'test-user'; // For now, we'll use a default test user
+  const connected = await connectDB();
+  
+  // If in offline mode, acknowledge but don't save
+  if (!connected || isOffline()) {
+    console.log('Cannot save progress in offline mode');
+    return new Response(JSON.stringify({
+      message: 'Progress not saved - running in offline mode',
+      success: false
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
 
   try {
+    const userId = 'test-user'; // For now, we'll use a default test user
+
     const existingProgress = await UserProgress.findOne({ userId });
     if (existingProgress) {
       return new Response(JSON.stringify({ error: 'User progress already exists' }), {
@@ -101,8 +136,21 @@ export const POST: APIRoute = async ({ request }) => {
 };
 
 export const PUT: APIRoute = async ({ request }) => {
-  await connectDB();
-  const userId = 'test-user'; // For now, we'll use a default test user
+  const connected = await connectDB();
+  
+  // If in offline mode, acknowledge but don't save
+  if (!connected || isOffline()) {
+    console.log('Cannot save progress in offline mode');
+    return new Response(JSON.stringify({
+      message: 'Progress not saved - running in offline mode',
+      success: false
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
 
   try {
     const body = await request.json();
@@ -117,6 +165,7 @@ export const PUT: APIRoute = async ({ request }) => {
       });
     }
 
+    const userId = 'test-user'; // For now, we'll use a default test user
     const userProgress = await UserProgress.findOne({ userId });
 
     if (!userProgress) {

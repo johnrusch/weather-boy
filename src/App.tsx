@@ -1,16 +1,18 @@
-import { ClerkProvider } from '@clerk/clerk-react';
-import FrenchLearningApp from './components/FrenchLearningApp';
+import { ClerkProvider } from "@clerk/clerk-react";
+import LanguageLearningApp from "./components/LanguageLearningApp";
 
-const PUBLISHABLE_KEY = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
+function App() {
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    return <div>Missing Publishable Key</div>;
+  }
 
-if (!PUBLISHABLE_KEY) {
-  throw new Error('Missing Publishable Key');
-}
-
-export default function App() {
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <FrenchLearningApp />
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    >
+      <LanguageLearningApp />
     </ClerkProvider>
   );
 }
+
+export default App;

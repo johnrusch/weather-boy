@@ -1,16 +1,16 @@
 ---
 import RootLayout from "../layouts/RootLayout.astro";
-import FrenchLearningApp from "../components/FrenchLearningApp";
-import { ClerkProvider } from '@clerk/clerk-react';
+import LanguageLearningApp from "../components/LanguageLearningApp";
+import { ClerkProvider } from "@clerk/clerk-react";
 
 const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
 if (!publishableKey) {
-  throw new Error('Missing Publishable Key');
+  throw new Error("Missing Publishable Key");
 }
 ---
 
-<RootLayout title="French Learning App">
+<RootLayout title="French & Spanish Learning App">
   <ClerkProvider publishableKey={publishableKey} client:load>
-    <FrenchLearningApp client:load />
+    <LanguageLearningApp client:load />
   </ClerkProvider>
 </RootLayout>

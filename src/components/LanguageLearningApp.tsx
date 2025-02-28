@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Play, AlertCircle, Loader2, SkipForward, Trophy } from "lucide-react";
 import type { Prompt, Transcription, SessionSettings } from "../types/prompt";
 import type { CampaignState } from "../types/campaign";
-import { getRandomPrompts } from "../data/prompts";
-import { getInitialCampaignState } from "../data/campaignLevels";
+import { getRandomPromptsByLanguage } from "../data/prompts";
+import { getInitialCampaignState, initialCampaignLevels, getCampaignLevelForLanguage } from "../data/campaignLevels";
 import { PromptCard } from "./PromptCard";
 import { Timer } from "./Timer";
 import { RecordingStatus } from "./RecordingStatus";
@@ -15,10 +15,56 @@ import { CampaignFlashcardReview } from "./CampaignFlashcardReview";
 const DEFAULT_SETTINGS: SessionSettings = {
   promptCount: 4,
   promptDuration: 5,
+  language: '', // Initialize with empty string
 };
 
-export default function FrenchLearningApp() {
-  const [settings, setSettings] = useState<SessionSettings>(DEFAULT_SETTINGS);
+export default function LanguageLearningApp() {
+  // Get language from localStorage directly
+  const [localLanguage, setLocalLanguage] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('preferredLanguage') || 'french';
+    }
+    return 'french';
+  });
+
+  // Initialize settings with the detected language
+  const [settings, setSettings] = useState<SessionSettings>({
+    ...DEFAULT_SETTINGS,
+    language: localLanguage
+  });
+
+  // Listen for language changes and update both local state and settings
+  useEffect(() => {
+    const handleLanguageChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const newLanguage = customEvent.detail?.language;
+      if (newLanguage) {
+        console.log('Language change event received:', newLanguage);
+        setLocalLanguage(newLanguage);
+        setSettings(prev => ({
+          ...prev,
+          language: newLanguage
+        }));
+      }
+    };
+
+    window.addEventListener('languageChanged', handleLanguageChange);
+    
+    // Also check localStorage directly on mount
+    const savedLanguage = localStorage.getItem('preferredLanguage');
+    if (savedLanguage && savedLanguage !== localLanguage) {
+      setLocalLanguage(savedLanguage);
+      setSettings(prev => ({
+        ...prev,
+        language: savedLanguage
+      }));
+    }
+    
+    return () => {
+      window.removeEventListener('languageChanged', handleLanguageChange);
+    };
+  }, [localLanguage]);
+
   const [selectedPrompts, setSelectedPrompts] = useState<Prompt[]>([]);
   const [currentPromptIndex, setCurrentPromptIndex] = useState(-1);
   const [timeLeft, setTimeLeft] = useState(0);
@@ -42,12 +88,12 @@ export default function FrenchLearningApp() {
   >([]);
   const expectedRecordingsRef = useRef<number>(0);
 
-  const generateFlashcards = async (transcription: string) => {
+  const generateFlashcards = async (transcription: string, language: string) => {
     try {
       const response = await fetch("/api/flashcards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: transcription }),
+        body: JSON.stringify({ text: transcription, language }),
       });
 
       if (!response.ok) {
@@ -68,6 +114,7 @@ export default function FrenchLearningApp() {
     try {
       const formData = new FormData();
       formData.append("file", audioBlob, "audio.webm");
+      formData.append("language", settings.language);
 
       const response = await fetch("/api/transcribe", {
         method: "POST",
@@ -155,18 +202,27 @@ export default function FrenchLearningApp() {
     return Promise.resolve();
   };
 
-  const startPromptSession = () => {
+  const startPromptSession = async () => {
+    setMode("free");
     setError(null);
-    const prompts = getRandomPrompts(settings.promptCount).map((prompt) => ({
-      ...prompt,
-      duration: settings.promptDuration * 60,
-    }));
-    expectedRecordingsRef.current = prompts.length;
-    setSelectedPrompts(prompts);
-    setCurrentPromptIndex(0);
-    setTimeLeft(prompts[0].duration);
+    setTranscriptions([]);
+    setIsProcessing(false);
     setAudioRecordings([]);
-    startRecording();
+    
+    // Use settings.language when fetching prompts
+    try {
+      // Use the language-specific function
+      const prompts = await getRandomPromptsByLanguage(settings.language, settings.promptCount);
+      expectedRecordingsRef.current = prompts.length;
+      setSelectedPrompts(prompts);
+      console.log("Selected prompts:", prompts);
+      setCurrentPromptIndex(0);
+      setTimeLeft(prompts[0].duration);
+      startRecording();
+    } catch (error) {
+      console.error("Error getting prompts:", error);
+      setError("Failed to load prompts");
+    }
   };
 
   const handleStartLevel = async (levelId: number) => {
@@ -335,6 +391,7 @@ export default function FrenchLearningApp() {
           prompt: selectedPrompts[promptIndex].text,
           mode,
           levelId: mode === "campaign" ? campaignState.progress.currentLevel : undefined,
+          language: settings.language
         }),
       });
 
@@ -352,138 +409,79 @@ export default function FrenchLearningApp() {
     }
   };
 
-  const processAllRecordings = async (
-    recordings: { blob: Blob; promptIndex: number }[]
-  ) => {
-    setIsProcessing(true);
-    setError(null); // Reset any previous errors
-    console.log("Starting to process recordings...");
-    console.log(`Number of recordings to process: ${recordings.length}`);
-
-    try {
-      const results = [];
-      const allFlashcards = [];
-
-      // Process recordings sequentially
-      for (const recording of recordings) {
-        try {
-          console.log(`Processing recording ${recording.promptIndex + 1} of ${recordings.length}`);
-          
-          // Step 1: Transcribe
-          setProcessingStage("transcribing");
-          const transcription = await transcribeAudio(recording.blob);
-          console.log(`Transcription for prompt ${recording.promptIndex + 1}:`, transcription);
-
-          if (!transcription) {
-            console.warn(`No transcription for recording ${recording.promptIndex + 1}`);
-            continue;
-          }
-
-          // Step 2: Evaluate
-          setProcessingStage("evaluating");
-          const evaluation = await handleEvaluateResponse(transcription, recording.promptIndex);
-          console.log(`Evaluation for prompt ${recording.promptIndex + 1}:`, evaluation);
-
-          // Step 3: Generate Flashcards
-          setProcessingStage("generating");
-          console.log(`Generating flashcards for prompt ${recording.promptIndex + 1}`);
-          const flashcardsResponse = await generateFlashcards(
-            `French Prompt: "${selectedPrompts[recording.promptIndex].text}"\n` +
-            `Your Response: "${transcription}"\n` +
-            `Generate 5 short, practical flashcards (3-9 words each) from this interaction:\n` +
-            `1. Fix any mistakes in the response\n` +
-            `2. Show alternative ways to express the same idea\n` +
-            `3. Include key phrases from the prompt\n` +
-            `4. Add related common expressions\n\n` +
-            `Important: Keep all phrases between 3-9 words and focus on natural, conversational French.`
-          );
-
-          // Add valid flashcards to our collection
-          if (flashcardsResponse?.flashcards) {
-            const validFlashcards = flashcardsResponse.flashcards.filter(card => {
-              if (!card || !card.french || !card.english) return false;
-              const wordCount = card.french.split(' ').length;
-              return wordCount >= 3 && wordCount <= 9;
-            });
-
-            // Add new flashcards, avoiding duplicates
-            validFlashcards.forEach(newCard => {
-              const isDuplicate = allFlashcards.some(
-                existingCard => 
-                  existingCard.french === newCard.french && 
-                  existingCard.english === newCard.english
-              );
-              if (!isDuplicate) {
-                allFlashcards.push(newCard);
-              }
-            });
-          }
-
-          // Store the successful result
-          results.push({
-            text: transcription,
-            promptIndex: recording.promptIndex,
-            evaluation,
-          });
-
-          // Update transcriptions as we go
-          setTranscriptions(prev => [
-            ...prev,
-            {
-              text: transcription,
-              prompt: selectedPrompts[recording.promptIndex],
-              timestamp: new Date().toISOString(),
-              flashcards: allFlashcards, // Add the current collection of flashcards
-              evaluation: evaluation
-                ? {
-                    score: evaluation.score,
-                    feedback: evaluation.feedback,
-                    percentageFrench: evaluation.percentageFrench,
-                    promptRelevance: evaluation.promptRelevance || "Not evaluated",
-                  }
-                : undefined,
-            },
-          ]);
-
-        } catch (error) {
-          console.error(`Error processing recording ${recording.promptIndex + 1}:`, error);
-          // Continue with next recording instead of failing completely
-          continue;
-        }
-      }
-
-      // If we have any successful results in campaign mode, update progress
-      if (mode === "campaign" && results.length > 0) {
-        const averageScore =
-          results.reduce((sum, result) => sum + (result.evaluation?.score || 0), 0) / 
-          results.length;
-
-        const currentLevel = campaignState.levels.find(l => 
-          l.prompts.some(p => p.text === selectedPrompts[0].text)
-        );
-
-        if (currentLevel) {
-          await updateCampaignProgress(currentLevel.id, Math.round(averageScore));
-        }
-      }
-
-      // If we didn't process any recordings successfully, throw an error
-      if (results.length === 0) {
-        throw new Error("Failed to process any recordings successfully");
-      }
-
-      console.log("Successfully processed recordings:", results);
-      console.log("Generated flashcards:", allFlashcards);
-
-    } catch (error) {
-      console.error("Error during processing:", error);
-      setError(error instanceof Error ? error.message : "Failed to process recordings");
-      setTranscriptions([]);
-    } finally {
-      setIsProcessing(false);
-      setProcessingStage("idle");
-      setAudioRecordings([]);
+  const processAllRecordings = async () => {
+    if (audioRecordings.length === 0) {
+      return;
     }
+    
+    setIsProcessing(true);
+    setProcessingStage("transcribing");
+    
+    const newTranscriptions: Transcription[] = [];
+    
+    // Process each recording
+    for (const recording of audioRecordings) {
+      try {
+        // Step 1: Transcribe audio
+        const transcriptionText = await transcribeAudio(recording.blob);
+        
+        // Step 2: Get evaluation
+        setProcessingStage("evaluating");
+        const currentPrompt = selectedPrompts[recording.promptIndex];
+        const evalResponse = await fetch("/api/evaluate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            transcription: transcriptionText,
+            promptText: currentPrompt.text,
+            language: currentPrompt.language || settings.language, // Use prompt language or fallback to settings
+            levelId: mode === "campaign" ? campaignState.progress.currentLevel : 0
+          }),
+        });
+        
+        if (!evalResponse.ok) {
+          throw new Error("Evaluation failed");
+        }
+        
+        const evaluation = await evalResponse.json();
+        
+        // Step 3: Generate flashcards
+        setProcessingStage("generating");
+        const flashcardsResponse = await fetch("/api/flashcards", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            text: transcriptionText, 
+            language: currentPrompt.language || settings.language // Use prompt language or fallback to settings
+          }),
+        });
+        
+        if (!flashcardsResponse.ok) {
+          throw new Error("Flashcard generation failed");
+        }
+        
+        const flashcardsData = await flashcardsResponse.json();
+        
+        // Create the transcription object
+        newTranscriptions.push({
+          text: transcriptionText,
+          prompt: currentPrompt,
+          timestamp: new Date().toISOString(),
+          flashcards: flashcardsData.flashcards,
+          evaluation
+        });
+        
+      } catch (error) {
+        console.error("Error processing recording:", error);
+        setError("Failed to process recording");
+      }
+    }
+    
+    // Update state with all transcriptions
+    setTranscriptions(prev => [...prev, ...newTranscriptions]);
+    setIsProcessing(false);
+    setProcessingStage("idle");
+    setAudioRecordings([]);
   };
 
   const handleNextPrompt = async () => {
@@ -511,7 +509,7 @@ export default function FrenchLearningApp() {
           
           if (prev.length === expectedRecordingsRef.current) {
             console.log("Processing all recordings");
-            processAllRecordings(prev);
+            processAllRecordings();
           } else {
             console.warn(`Missing recordings. Expected: ${expectedRecordingsRef.current}, Got: ${prev.length}`);
             setError("Some recordings were not properly saved. Please try again.");
@@ -530,6 +528,7 @@ export default function FrenchLearningApp() {
         body: JSON.stringify({
           text: transcription,
           prompt: prompt,
+          language: settings.language
         }),
       });
 
@@ -596,12 +595,25 @@ export default function FrenchLearningApp() {
     }
   }, [timeLeft, currentPromptIndex, selectedPrompts]);
 
+  useEffect(() => {
+    setCampaignState(prev => ({
+      ...prev,
+      levels: getCampaignLevelForLanguage(initialCampaignLevels, settings.language)
+    }));
+
+    // If we have transcriptions, don't refresh prompts during an active session
+    if (currentPromptIndex === -1 && transcriptions.length === 0) {
+      // Reset selected prompts if we're not in the middle of a session
+      setSelectedPrompts([]);
+    }
+  }, [settings.language, currentPromptIndex, transcriptions.length]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 p-8">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-            French Language Practice Session
+            Language Learning Practice Session
           </h1>
           
           {error && (
@@ -706,7 +718,7 @@ export default function FrenchLearningApp() {
                 />
               )}
               <p className="text-gray-600 mb-8">
-                Ready to practice French? You'll receive {settings.promptCount}{" "}
+                Ready to practice {settings.language}? You'll receive {settings.promptCount}{" "}
                 random prompts, with {settings.promptDuration} minutes for each
                 response.
               </p>
@@ -776,7 +788,10 @@ export default function FrenchLearningApp() {
 
               {transcriptions[0]?.flashcards && (
                 <div className="mt-8 pt-8 border-t">
-                  <FlashcardsList flashcards={transcriptions[0].flashcards} />
+                  <FlashcardsList 
+                    flashcards={transcriptions[0].flashcards} 
+                    language={transcriptions[0].prompt.language || settings.language}
+                  />
                 </div>
               )}
             </div>
@@ -793,7 +808,7 @@ export default function FrenchLearningApp() {
                   {processingStage === "transcribing" &&
                     "Converting Recordings to Text"}
                   {processingStage === "evaluating" &&
-                    "Evaluating Your French Responses"}
+                    "Evaluating Your Responses"}
                   {processingStage === "generating" &&
                     "Creating Your Flashcard Set"}
                 </p>

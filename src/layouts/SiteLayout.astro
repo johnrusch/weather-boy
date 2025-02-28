@@ -47,6 +47,16 @@ const { title } = Astro.props;
               </a>
             </SignedOut>
             <SignedIn>
+              <div class="bg-gray-100 rounded-md flex items-center px-3 py-1">
+                <span class="text-sm font-medium text-gray-600 mr-2">Language:</span>
+                <select
+                  id="language-selector"
+                  class="bg-transparent border-none text-gray-700 py-1 focus:ring-0 focus:outline-none"
+                >
+                  <option value="french">French</option>
+                  <option value="spanish">Spanish</option>
+                </select>
+              </div>
               <UserButton 
                 afterSignOutUrl="/"
                 appearance={{
@@ -63,5 +73,37 @@ const { title } = Astro.props;
         <slot />
       </main>
     </div>
+    <script>
+      // Script needs to run both at page load and after any client-side navigation
+      function initializeLanguageSelector() {
+        const languageSelector = document.getElementById('language-selector');
+        if (languageSelector) {
+          // Set initial value from localStorage
+          const savedLanguage = localStorage.getItem('preferredLanguage') || 'french';
+          languageSelector.value = savedLanguage;
+          
+          // Add change listener (remove old listeners first to avoid duplicates)
+          languageSelector.removeEventListener('change', handleLanguageChange);
+          languageSelector.addEventListener('change', handleLanguageChange);
+        }
+      }
+      
+      function handleLanguageChange(e) {
+        const newLang = e.target.value;
+        console.log('Language selected in header:', newLang);
+        localStorage.setItem('preferredLanguage', newLang);
+        window.dispatchEvent(new CustomEvent('languageChanged', { 
+          detail: { language: newLang }
+        }));
+      }
+
+      // Run on DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', initializeLanguageSelector);
+      
+      // Also run the function now in case the DOM is already loaded
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initializeLanguageSelector();
+      }
+    </script>
   </body>
 </html> 

@@ -9,6 +9,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const formData = await request.formData();
     const audioFile = formData.get('file') as File;
+    const language = formData.get('language') as string || 'french';
 
     if (!audioFile) {
       return new Response(JSON.stringify({ error: 'No audio file provided' }), {
@@ -17,10 +18,13 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Create language-specific prompt
+    const languageName = language === 'spanish' ? 'Spanish' : 'French';
+    
     const response = await openai.audio.transcriptions.create({
       file: audioFile,
       model: 'whisper-1',
-      prompt: `This is a French language learning exercise where the speaker may switch between English and French. 
+      prompt: `This is a ${languageName} language learning exercise where the speaker may switch between English and ${languageName}. 
       Please transcribe exactly what you hear, preserving:
       1. All code-switching between languages
       2. Any grammatical mistakes or non-standard usage
@@ -33,9 +37,8 @@ export const POST: APIRoute = async ({ request }) => {
       3. Standardize the language usage
       4. Remove code-switching
       
-      Example: "Je ne sais pas how to say this en français"
-      NOT: "Je ne sais pas comment dire cela en français"`,
-      // language: 'fr' // This helps with French phoneme recognition while still allowing English
+      Example: "Je ne sais pas how to say this en français" (for French)
+      OR: "No sé how to say this en español" (for Spanish)`,
     });
 
     return new Response(JSON.stringify({ text: response.text }), {

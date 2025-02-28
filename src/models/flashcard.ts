@@ -18,64 +18,82 @@ const FlashcardSchema = new mongoose.Schema({
       message: (props: ValidatorProps) => `${props.value} is not a valid userId`
     }
   },
-  french: { 
+  targetLanguage: { 
     type: String, 
-    required: [true, 'French text is required'],
+    required: [true, 'Target language text is required'],
     validate: {
       validator: function(v: string) {
-        console.log('Validating french:', v);
+        console.log('Validating targetLanguage:', v);
         return v.length > 0;
       },
-      message: (props: ValidatorProps) => `${props.value} is not a valid french text`
+      message: (props: ValidatorProps) => `${props.value} is not a valid text`
     }
   },
   english: { 
     type: String, 
-    required: [true, 'English text is required'],
+    required: [true, 'English translation is required'],
     validate: {
       validator: function(v: string) {
         console.log('Validating english:', v);
         return v.length > 0;
       },
-      message: (props: ValidatorProps) => `${props.value} is not a valid english text`
+      message: (props: ValidatorProps) => `${props.value} is not a valid english translation`
     }
   },
   type: { 
     type: String, 
     enum: {
-      values: ['correction', 'translation', 'variation'],
-      message: '{VALUE} is not a supported type'
-    },
-    required: [true, 'Type is required'],
+      values: ['correction', 'variation', 'translation', 'other'],
+      message: '{VALUE} is not a valid flashcard type'
+    }, 
+    required: [true, 'Flashcard type is required'],
     validate: {
       validator: function(v: string) {
         console.log('Validating type:', v);
-        return ['correction', 'translation', 'variation'].includes(v);
+        return ['correction', 'variation', 'translation', 'other'].includes(v);
       },
-      message: (props: ValidatorProps) => `${props.value} is not a valid type`
+      message: (props: ValidatorProps) => `${props.value} is not a valid flashcard type`
     }
+  },
+  language: {
+    type: String,
+    enum: ['french', 'spanish'],
+    default: 'french',
+    required: [true, 'Language is required']
   },
   originalText: String,
   savedAt: { type: Date, default: Date.now },
   tags: [String],
   favorite: { type: Boolean, default: false },
-  lastReviewed: { type: Date },
-  nextReviewDate: { type: Date },
-  reviewCount: { type: Number, default: 0 },
-  easeFactor: { type: Number, default: 2.5 },
-  interval: { type: Number, default: 1 },
-  confidence: { 
-    type: String, 
-    enum: ['again', 'hard', 'good', 'easy'],
-    default: 'good'
+  mastered: { type: Boolean, default: false },
+  promptId: String,
+  // For backward compatibility, alias french to targetLanguage
+  french: {
+    type: String,
+    get: function() {
+      return this.targetLanguage;
+    },
+    set: function(value: string) {
+      this.targetLanguage = value;
+      return value;
+    }
   }
+}, {
+  toJSON: { getters: true, virtuals: true },
+  toObject: { getters: true, virtuals: true }
 });
+
+// Create indexes
+FlashcardSchema.index({ userId: 1 });
+FlashcardSchema.index({ tags: 1 });
+FlashcardSchema.index({ favorite: 1 });
+FlashcardSchema.index({ mastered: 1 });
 
 // Add middleware to log document creation
 FlashcardSchema.pre('save', function(next) {
   console.log('Pre-save middleware:', {
     userId: this.userId,
-    french: this.french,
+    targetLanguage: this.targetLanguage,
     english: this.english,
     type: this.type
   });

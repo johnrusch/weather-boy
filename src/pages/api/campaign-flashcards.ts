@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { connectDB } from '../../lib/db';
+import { connectDB, isOffline } from '../../lib/db';
 import { CampaignFlashcard } from '../../models/CampaignFlashcard';
 import { UserProgress } from '../../models/UserProgress';
 
@@ -9,7 +9,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { method } = req;
-  await connectDB();
+  const connected = await connectDB();
+
+  if (!connected || isOffline()) {
+    console.log('Running in offline mode');
+  }
 
   switch (method) {
     case 'GET':
@@ -36,6 +40,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         
         if (!levelId || !flashcards || !Array.isArray(flashcards)) {
           return res.status(400).json({ error: 'Invalid request body' });
+        }
+
+        if (!connected || isOffline()) {
+          console.log('Returning flashcards in offline mode (not saved to DB)');
+          return res.status(200).json({ 
+            message: 'Running in offline mode - flashcards generated but not saved',
+            flashcards 
+          });
         }
 
         const createdFlashcards = await CampaignFlashcard.create(
@@ -92,6 +104,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (mastered !== undefined) {
           flashcard.mastered = mastered;
+        }
+
+        if (!connected || isOffline()) {
+          console.log('Not saving flashcard update in offline mode');
+          return res.status(200).json({ 
+            message: 'Running in offline mode - flashcard updated but not saved',
+            flashcard 
+          });
         }
 
         await flashcard.save();

@@ -5,7 +5,7 @@ import { Loader2, RotateCw, ThumbsUp, ThumbsDown, BookOpen, Calendar } from 'luc
 
 interface StudyFlashcard {
   _id: string;
-  french: string;
+  targetLanguage: string;
   english: string;
   type: string;
   originalText?: string;
@@ -176,7 +176,7 @@ export const StudyInterface: React.FC = () => {
           {/* Card Content - Now showing English first */}
           <div className="mb-8 text-center">
             <div className="text-2xl font-medium mb-4">
-              {showAnswer ? currentCard.french : currentCard.english}
+              {showAnswer ? currentCard.targetLanguage : currentCard.english}
             </div>
             
             {!showAnswer ? (
@@ -185,7 +185,7 @@ export const StudyInterface: React.FC = () => {
                 className="px-6 py-3 bg-indigo-600 text-white rounded-lg
                          hover:bg-indigo-700 transition-colors"
               >
-                Show French Translation
+                Show Target Language Translation
               </button>
             ) : (
               <div className="space-y-4">
@@ -231,11 +231,6 @@ export const StudyInterface: React.FC = () => {
                 {/* Added hint about card type */}
                 <div className="mt-4 text-sm text-gray-500">
                   Card Type: {currentCard.type.charAt(0).toUpperCase() + currentCard.type.slice(1)}
-                  {currentCard.originalText && (
-                    <div className="mt-1">
-                      Original Attempt: {currentCard.originalText}
-                    </div>
-                  )}
                 </div>
               </div>
             )}

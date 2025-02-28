@@ -11,13 +11,21 @@ export const SessionSettingsForm: React.FC<SessionSettingsProps> = ({
   settings,
   onSettingsChange,
 }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const numValue = Math.max(1, parseInt(value) || 1);
-    onSettingsChange({
-      ...settings,
-      [name]: numValue,
-    });
+    
+    if (name === 'language') {
+      onSettingsChange({
+        ...settings,
+        [name]: value,
+      });
+    } else {
+      const numValue = Math.max(1, parseInt(value) || 1);
+      onSettingsChange({
+        ...settings,
+        [name]: numValue,
+      });
+    }
   };
 
   return (
