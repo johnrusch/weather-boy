@@ -52,13 +52,31 @@ The application now supports both French and Spanish language learning with the 
 - Language-specific flashcard generation
 - UI for switching between languages
 
+## Testing Infrastructure
+
+### Automated Testing
+- **Unit Tests**: Tests for individual API endpoints using Vitest
+- **Flashcard Generation Testing Suite**: Specialized tools for testing the flashcard generation functionality
+  - Predefined test cases for both French and Spanish with varying levels of correctness
+  - Custom text testing capability for quick evaluation of specific language samples
+  - Results analysis tools for evaluating flashcard quality
+
+### Test Cases
+- **Perfect language**: Grammatically correct sentences
+- **Minor errors**: Sentences with small grammatical issues
+- **Major errors**: Sentences with significant grammatical problems
+- **Mixed language**: Target language mixed with English words
+- **Beginner level**: Simple sentences with typical beginner mistakes
+
 ## Dependencies
 - **OpenAI API**: Used for transcription, evaluation, and flashcard generation
 - **React**: Frontend UI library
 - **Astro**: Server-side rendering and API routes
 - **Tailwind CSS**: Styling framework
+- **Vitest**: Testing framework
 
 ## Future Enhancements
 - Support for additional languages
 - Enhanced audio processing for better pronunciation feedback
 - Expanded campaign levels for both languages
+- Advanced testing capabilities for all application features

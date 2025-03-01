@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-03-01T23:52:44.653Z",
+  "language": "french",
+  "inputText": "Je veux acheter une nouvelle voiture but I don't know which model to choose",
+  "flashcards": [
+    {
+      "targetLanguage": "mais je ne sais pas quel modèle choisir",
+      "english": "but I don't know which model to choose",
+      "type": "correction",
+      "originalText": "but I don't know which model to choose"
+    },
+    {
+      "targetLanguage": "Je veux acheter une voiture nouvelle",
+      "english": "I want to buy a new car",
+      "type": "correction",
+      "originalText": "Je veux acheter une nouvelle voiture"
+    },
+    {
+      "targetLanguage": "Je souhaite acquérir une voiture nouvelle",
+      "english": "I wish to acquire a new car",
+      "type": "variation",
+      "originalText": "Je veux acheter une nouvelle voiture"
+    },
+    {
+      "targetLanguage": "mais je ne sais pas lequel choisir",
+      "english": "but I don't know which one to choose",
+      "type": "variation",
+      "originalText": "mais je ne sais pas quel modèle choisir"
+    },
+    {
+      "targetLanguage": "Je veux acheter une voiture nouvelle",
+      "english": "I want to buy a new car",
+      "type": "translation",
+      "originalText": "Je veux acheter une nouvelle voiture"
+    }
+  ]
+}

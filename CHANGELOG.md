@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2025-03-01]
+### Added
+- Additional flashcard generation test cases for code-switching scenarios
+  - Purpose: To test how the system handles mixing English words in target language contexts
+  - Affected files:
+    - `src/tests/flashcard-generator-test.ts`: Added new test cases
+    - `src/tests/README.md`: Updated documentation
+  - Features:
+    - Test cases for vocabulary gaps in both French and Spanish
+    - Test cases for natural code-switching between English and target languages
+    - Enhanced documentation on mixed-language scenarios
+
+## [2025-03-01]
+### Added
+- Comprehensive flashcard generation testing suite
+  - Purpose: To enable independent testing of the flashcard generation functionality without using the full application flow
+  - Affected files:
+    - `src/pages/api/__tests__/flashcards.test.ts`: Unit tests for the flashcard API
+    - `src/tests/flashcard-generator-test.ts`: Integration test utility with predefined test cases
+    - `src/tests/run-flashcard-tests.ts`: Command-line tool to run tests
+    - `src/tests/analyze-flashcard-results.ts`: Results analysis utility
+    - `src/tests/test-custom-flashcards.ts`: Custom text testing utility
+    - `src/tests/types.ts`: Type definitions
+    - `src/tests/README.md`: Documentation
+    - `src/tests/CHANGELOG.md`: Dedicated changelog
+    - `SYSTEM_OVERVIEW.md`: Updated with testing information
+    - `package.json`: Added npm scripts
+  - Features:
+    - Unit test coverage for the flashcard API endpoint
+    - Predefined test cases for French and Spanish with varying correctness levels
+    - Custom text testing for quick evaluation of specific phrases
+    - Detailed results analysis and visualization
+    - Comprehensive documentation
+
 ## [2025-02-27]
 ### Added
 - Multi-language support for both French and Spanish learning

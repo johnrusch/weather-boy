@@ -1,0 +1,240 @@
+{
+  "timestamp": "2025-03-01T23:46:32.412Z",
+  "results": [
+    {
+      "success": true,
+      "testCase": {
+        "id": "french-perfect",
+        "language": "french",
+        "description": "Perfectly correct French",
+        "text": "Bonjour, je m'appelle Marie. J'habite à Paris depuis cinq ans. J'aime beaucoup la cuisine française, surtout les croissants et le café au lait le matin. Le week-end, je visite souvent les musées ou je me promène dans les jardins."
+      },
+      "result": {
+        "flashcards": [
+          {
+            "targetLanguage": "Bonjour, je m'appelle Marie.",
+            "english": "Hello, my name is Marie.",
+            "type": "translation",
+            "originalText": "Bonjour, je m'appelle Marie."
+          },
+          {
+            "targetLanguage": "J'habite à Paris depuis cinq ans.",
+            "english": "I have been living in Paris for five years.",
+            "type": "translation",
+            "originalText": "J'habite à Paris depuis cinq ans."
+          },
+          {
+            "targetLanguage": "Je vis à Paris depuis cinq ans.",
+            "english": "I've been living in Paris for five years.",
+            "type": "variation",
+            "originalText": "J'habite à Paris depuis cinq ans."
+          },
+          {
+            "targetLanguage": "J'adore la cuisine française.",
+            "english": "I love French cuisine.",
+            "type": "variation",
+            "originalText": "J'aime beaucoup la cuisine française."
+          },
+          {
+            "targetLanguage": "Le week-end, je visite des musées.",
+            "english": "On the weekends, I visit museums.",
+            "type": "correction",
+            "originalText": "Le week-end, je visite souvent les musées."
+          }
+        ]
+      }
+    },
+    {
+      "success": true,
+      "testCase": {
+        "id": "french-minor-errors",
+        "language": "french",
+        "description": "French with minor grammatical errors",
+        "text": "Bonjour, je m'appelle Pierre. J'habite à Paris depuis cinq années. J'aime beaucoup le cuisine française, surtout les croissants et le café avec lait le matin. Le week-end, je visite souvent des musées ou je me promène dans les jardins.",
+        "expectedIssues": [
+          "gender agreement",
+          "preposition usage"
+        ]
+      },
+      "result": {
+        "flashcards": [
+          {
+            "targetLanguage": "J'habite à Paris depuis cinq ans.",
+            "english": "I've been living in Paris for five years.",
+            "type": "correction",
+            "originalText": "J'habite à Paris depuis cinq années."
+          },
+          {
+            "targetLanguage": "et le café au lait le matin.",
+            "english": "and coffee with milk in the morning.",
+            "type": "correction",
+            "originalText": "et le café avec lait le matin."
+          },
+          {
+            "targetLanguage": "J'adore la cuisine française,",
+            "english": "I love French food,",
+            "type": "variation",
+            "originalText": "J'aime beaucoup la cuisine française,"
+          },
+          {
+            "targetLanguage": "Le weekend, je fais souvent du tourisme.",
+            "english": "On the weekends, I often go sightseeing.",
+            "type": "variation",
+            "originalText": "Le week-end, je visite souvent des musées ou je me promène dans les jardins."
+          },
+          {
+            "targetLanguage": "Je m'appelle Pierre.",
+            "english": "My name is Pierre.",
+            "type": "translation",
+            "originalText": "Je m'appelle Pierre."
+          }
+        ]
+      }
+    },
+    {
+      "success": true,
+      "testCase": {
+        "id": "french-major-errors",
+        "language": "french",
+        "description": "French with major grammatical errors",
+        "text": "Bonjour, je m'appelle Jean. Je habite à Paris depuis cinq ans. Je aime beaucoup la cuisine français, surtout le croissants et la café au lait le matin. Dans le week-end, je visiter souvent les musées ou je promène dans les jardins.",
+        "expectedIssues": [
+          "elision missing",
+          "gender agreement",
+          "verb conjugation",
+          "preposition usage"
+        ]
+      },
+      "result": {
+        "flashcards": [
+          {
+            "targetLanguage": "J'habite à Paris depuis cinq ans.",
+            "english": "I've been living in Paris for five years.",
+            "type": "correction",
+            "originalText": "Je habite à Paris depuis cinq ans."
+          },
+          {
+            "targetLanguage": "J'aime beaucoup la cuisine française",
+            "english": "I really like French cuisine",
+            "type": "correction",
+            "originalText": "Je aime beaucoup la cuisine français"
+          },
+          {
+            "targetLanguage": "surtout les croissants et le café au lait",
+            "english": "especially the croissants and café au lait",
+            "type": "variation",
+            "originalText": "surtout le croissants et la café au lait le matin"
+          },
+          {
+            "targetLanguage": "Le week-end, je visite souvent les musées.",
+            "english": "On the weekends, I often visit museums.",
+            "type": "variation",
+            "originalText": "Dans le week-end, je visiter souvent les musées"
+          },
+          {
+            "targetLanguage": "ou je me promène dans les jardins",
+            "english": "or I stroll in the gardens",
+            "type": "translation",
+            "originalText": "ou je promène dans les jardins"
+          }
+        ]
+      }
+    },
+    {
+      "success": true,
+      "testCase": {
+        "id": "french-mixed-languages",
+        "language": "french",
+        "description": "French mixed with English words",
+        "text": "Bonjour, je m'appelle Sophie. J'habite à Paris since five years. J'aime beaucoup la cuisine française, especially les croissants et le café au lait in the morning. Le weekend, je visit souvent les museums ou je me promène in the gardens.",
+        "expectedIssues": [
+          "English words",
+          "verb conjugation"
+        ]
+      },
+      "result": {
+        "flashcards": [
+          {
+            "targetLanguage": "J'habite à Paris depuis cinq ans.",
+            "english": "I've been living in Paris for five years.",
+            "type": "correction",
+            "originalText": "J'habite à Paris since five years"
+          },
+          {
+            "targetLanguage": "J'aime beaucoup la cuisine française, surtout les croissants et le café au lait le matin.",
+            "english": "I really like French cuisine, especially croissants and café au lait in the morning.",
+            "type": "correction",
+            "originalText": "J'aime beaucoup la cuisine française, especially les croissants et le café au lait in the morning"
+          },
+          {
+            "targetLanguage": "J'habite à Paris depuis un certain temps.",
+            "english": "I've been living in Paris for some time.",
+            "type": "variation",
+            "originalText": "J'habite à Paris depuis cinq ans"
+          },
+          {
+            "targetLanguage": "J'apprécie beaucoup la cuisine française, notamment les croissants et le café au lait le matin.",
+            "english": "I appreciate French cuisine a lot, especially croissants and café au lait in the morning.",
+            "type": "variation",
+            "originalText": "J'aime beaucoup la cuisine française, surtout les croissants et le café au lait le matin"
+          },
+          {
+            "targetLanguage": "Le weekend, je visite souvent les musées.",
+            "english": "On the weekends, I often visit museums.",
+            "type": "translation",
+            "originalText": ""
+          }
+        ]
+      }
+    },
+    {
+      "success": true,
+      "testCase": {
+        "id": "french-beginner",
+        "language": "french",
+        "description": "Beginner-level French with translation errors",
+        "text": "Je suis aller à le magasin hier. J'ai acheter du pain et du lait. Le pain était très bon mais le lait était mauvais. Je ne aime pas le lait mauvais.",
+        "expectedIssues": [
+          "verb form",
+          "preposition contraction",
+          "verb conjugation",
+          "elision missing"
+        ]
+      },
+      "result": {
+        "flashcards": [
+          {
+            "targetLanguage": "Je suis allé au magasin hier.",
+            "english": "I went to the store yesterday.",
+            "type": "correction",
+            "originalText": "Je suis aller à le magasin hier"
+          },
+          {
+            "targetLanguage": "J'ai acheté du pain et du lait.",
+            "english": "I bought some bread and milk.",
+            "type": "correction",
+            "originalText": "J'ai acheter du pain et du lait."
+          },
+          {
+            "targetLanguage": "Hier, je suis allé faire les courses.",
+            "english": "Yesterday, I went grocery shopping.",
+            "type": "variation",
+            "originalText": "Je suis aller à le magasin hier"
+          },
+          {
+            "targetLanguage": "J'ai pris du pain et du lait.",
+            "english": "I got some bread and milk.",
+            "type": "variation",
+            "originalText": "J'ai acheter du pain et du lait."
+          },
+          {
+            "targetLanguage": "Je n'aime pas le lait mauvais.",
+            "english": "I don't like bad milk.",
+            "type": "translation",
+            "originalText": "Je ne aime pas le lait mauvais."
+          }
+        ]
+      }
+    }
+  ]
+}

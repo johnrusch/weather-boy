@@ -1,0 +1,239 @@
+{
+  "timestamp": "2025-03-01T23:49:46.631Z",
+  "results": [
+    {
+      "success": true,
+      "testCase": {
+        "id": "spanish-perfect",
+        "language": "spanish",
+        "description": "Perfectly correct Spanish",
+        "text": "Hola, me llamo Carlos. Vivo en Madrid desde hace cinco años. Me gusta mucho la cocina española, especialmente la paella y el gazpacho en verano. Los fines de semana, a menudo visito museos o paseo por los parques."
+      },
+      "result": {
+        "flashcards": [
+          {
+            "targetLanguage": "Me llamo Carlos.",
+            "english": "My name is Carlos.",
+            "type": "correction",
+            "originalText": "Hola, me llamo Carlos."
+          },
+          {
+            "targetLanguage": "Vivo en Madrid desde hace cinco años.",
+            "english": "I have been living in Madrid for five years.",
+            "type": "correction",
+            "originalText": "Vivo en Madrid desde hace cinco años."
+          },
+          {
+            "targetLanguage": "La paella y el gazpacho me gustan mucho.",
+            "english": "I really like paella and gazpacho.",
+            "type": "variation",
+            "originalText": "Me gusta mucho la cocina española, especialmente la paella y el gazpacho en verano."
+          },
+          {
+            "targetLanguage": "Los fines de semana, suelo visitar museos o pasear por los parques.",
+            "english": "On weekends, I usually visit museums or walk in the parks.",
+            "type": "variation",
+            "originalText": "Los fines de semana, a menudo visito museos o paseo por los parques."
+          },
+          {
+            "targetLanguage": "Me gusta mucho la cocina española.",
+            "english": "I really like Spanish cuisine.",
+            "type": "translation"
+          }
+        ]
+      }
+    },
+    {
+      "success": true,
+      "testCase": {
+        "id": "spanish-minor-errors",
+        "language": "spanish",
+        "description": "Spanish with minor grammatical errors",
+        "text": "Hola, me llamo Ana. Vivo en Madrid desde cinco años. Me gusta mucho la cocina española, especialmente la paella y el gazpacho en el verano. Los fines de semana, a menudo visito a museos o paseo en los parques.",
+        "expectedIssues": [
+          "preposition usage",
+          "article usage"
+        ]
+      },
+      "result": {
+        "flashcards": [
+          {
+            "targetLanguage": "Vivo en Madrid desde hace cinco años.",
+            "english": "I have been living in Madrid for five years.",
+            "type": "correction",
+            "originalText": "Vivo en Madrid desde cinco años"
+          },
+          {
+            "targetLanguage": "Los fines de semana, a menudo visito museos o paseo por los parques.",
+            "english": "On weekends, I often visit museums or stroll through the parks.",
+            "type": "correction",
+            "originalText": "Los fines de semana, a menudo visito a museos o paseo en los parques"
+          },
+          {
+            "targetLanguage": "Hace cinco años que vivo en Madrid.",
+            "english": "I've been living in Madrid for five years.",
+            "type": "variation",
+            "originalText": "Vivo en Madrid desde hace cinco años"
+          },
+          {
+            "targetLanguage": "Los fines de semana, a menudo voy a museos o parques.",
+            "english": "On weekends, I often go to museums or parks.",
+            "type": "variation",
+            "originalText": "Los fines de semana, a menudo visito museos o paseo por los parques"
+          },
+          {
+            "targetLanguage": "Me gusta mucho la cocina española.",
+            "english": "I really like Spanish cuisine.",
+            "type": "translation",
+            "originalText": "Me gusta mucho la cocina española"
+          }
+        ]
+      }
+    },
+    {
+      "success": true,
+      "testCase": {
+        "id": "spanish-major-errors",
+        "language": "spanish",
+        "description": "Spanish with major grammatical errors",
+        "text": "Hola, yo llamo Miguel. Yo vivo en Madrid desde hace cinco año. Me gusta mucho el cocina español, especialmente el paella y la gazpacho en verano. Los fin de semana, a menudo yo visitar museos o yo pasear por los parques.",
+        "expectedIssues": [
+          "reflexive verb usage",
+          "unnecessary subject pronoun",
+          "gender agreement",
+          "singular/plural agreement",
+          "verb conjugation"
+        ]
+      },
+      "result": {
+        "flashcards": [
+          {
+            "targetLanguage": "Hola, me llamo Miguel.",
+            "english": "Hello, my name is Miguel.",
+            "type": "correction",
+            "originalText": "Hola, yo llamo Miguel."
+          },
+          {
+            "targetLanguage": "Vivo en Madrid desde hace cinco años.",
+            "english": "I have lived in Madrid for five years.",
+            "type": "correction",
+            "originalText": "Yo vivo en Madrid desde hace cinco año."
+          },
+          {
+            "targetLanguage": "La cocina española me gusta mucho.",
+            "english": "I really like Spanish cuisine.",
+            "type": "variation",
+            "originalText": "Me gusta mucho el cocina español"
+          },
+          {
+            "targetLanguage": "Los fines de semana, a menudo visito museos",
+            "english": "On weekends, I often visit museums",
+            "type": "variation",
+            "originalText": "Los fin de semana, a menudo yo visitar museos"
+          },
+          {
+            "targetLanguage": "especialmente la paella y el gazpacho en verano.",
+            "english": "especially paella and gazpacho in the summer.",
+            "type": "translation",
+            "originalText": ""
+          }
+        ]
+      }
+    },
+    {
+      "success": true,
+      "testCase": {
+        "id": "spanish-mixed-languages",
+        "language": "spanish",
+        "description": "Spanish mixed with English words",
+        "text": "Hola, me llamo Laura. Vivo en Madrid since five years. Me gusta mucho la cocina española, especially la paella y el gazpacho in the summer. Los weekends, a menudo visit museos o paseo in the parks.",
+        "expectedIssues": [
+          "English words",
+          "verb conjugation"
+        ]
+      },
+      "result": {
+        "flashcards": [
+          {
+            "targetLanguage": "Vivo en Madrid desde hace cinco años.",
+            "english": "I have been living in Madrid for five years.",
+            "type": "correction",
+            "originalText": "Vivo en Madrid since five years."
+          },
+          {
+            "targetLanguage": "Especialmente la paella y el gazpacho en verano.",
+            "english": "Especially paella and gazpacho in the summer.",
+            "type": "correction",
+            "originalText": "especially la paella y el gazpacho in the summer."
+          },
+          {
+            "targetLanguage": "Los fines de semana, suelo visitar museos o pasear en los parques.",
+            "english": "On weekends, I often visit museums or walk in the parks.",
+            "type": "variation",
+            "originalText": "Los weekends, a menudo visit museos o paseo in the parks."
+          },
+          {
+            "targetLanguage": "Los fines de semana, frecuentemente visito museos o paseo por los parques.",
+            "english": "On weekends, I frequently visit museums or walk through the parks.",
+            "type": "variation",
+            "originalText": "Los weekends, a menudo visit museos o paseo in the parks."
+          },
+          {
+            "targetLanguage": "Me gusta mucho la cocina española.",
+            "english": "I really like Spanish cuisine.",
+            "type": "translation",
+            "originalText": "Me gusta mucho la cocina española."
+          }
+        ]
+      }
+    },
+    {
+      "success": true,
+      "testCase": {
+        "id": "spanish-beginner",
+        "language": "spanish",
+        "description": "Beginner-level Spanish with translation errors",
+        "text": "Yo fue a la tienda ayer. Yo compré pan y leche. El pan estaba muy bueno pero la leche estaba malo. Yo no gusto leche malo.",
+        "expectedIssues": [
+          "verb conjugation",
+          "gender agreement",
+          "verb-pronoun construction"
+        ]
+      },
+      "result": {
+        "flashcards": [
+          {
+            "targetLanguage": "Yo fui a la tienda ayer.",
+            "english": "I went to the store yesterday.",
+            "type": "correction",
+            "originalText": "Yo fue a la tienda ayer."
+          },
+          {
+            "targetLanguage": "No me gusta la leche mala.",
+            "english": "I don't like bad milk.",
+            "type": "correction",
+            "originalText": "Yo no gusto leche malo."
+          },
+          {
+            "targetLanguage": "Ayer, fui a comprar pan y leche.",
+            "english": "Yesterday, I went to buy bread and milk.",
+            "type": "variation",
+            "originalText": "Yo fui a la tienda ayer. Yo compré pan y leche."
+          },
+          {
+            "targetLanguage": "El pan era delicioso, pero la leche no tanto.",
+            "english": "The bread was delicious, but the milk not so much.",
+            "type": "variation",
+            "originalText": "El pan estaba muy bueno pero la leche estaba malo."
+          },
+          {
+            "targetLanguage": "El pan estaba muy bueno.",
+            "english": "The bread was very good.",
+            "type": "translation",
+            "originalText": "El pan estaba muy bueno."
+          }
+        ]
+      }
+    }
+  ]
+}

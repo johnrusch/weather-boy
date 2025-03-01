@@ -1,5 +1,92 @@
 # Session Log
 
+## [2025-03-01] Flashcard Generation Testing Suite Implementation - Code-Switching Update
+
+### Summary
+Expanded the flashcard generation testing suite with new test cases specifically designed to test how the system handles code-switching and vocabulary gap scenarios where users mix English with the target language.
+
+### Changes Made
+
+#### 1. New Test Cases
+- Added new test cases for mixing English words in French and Spanish contexts
+- Created two categories of mixed language scenarios:
+  - Vocabulary gaps: Using English words when target language vocabulary is unknown
+  - Natural code-switching: Switching between languages mid-conversation
+- **Files modified**: `src/tests/flashcard-generator-test.ts`
+
+#### 2. Documentation Updates
+- Added detailed documentation about the new test cases
+- Included explanation of code-switching scenarios in the README
+- Updated changelogs to reflect the new additions
+- **Files modified**:
+  - `src/tests/README.md`
+  - `src/tests/CHANGELOG.md`
+  - `CHANGELOG.md`
+
+#### 3. Testing Infrastructure Improvements
+- Fixed API URL issues in test scripts to work with the local dev server
+- Added setup utility to ensure fetch API availability in Node.js environment
+- Installed missing dependencies (tsx and minimist)
+- **Files created/modified**:
+  - `src/tests/setup.ts` (new)
+  - `src/tests/test-custom-flashcards.ts`
+  - `src/tests/flashcard-generator-test.ts`
+  - `src/tests/run-flashcard-tests.ts`
+
+### Testing Notes
+- Successfully executed tests with the new test cases
+- Verified system's ability to handle mixed language inputs
+- Analyzed results showing appropriate handling of English words in target language contexts
+
+## [2025-03-01] Flashcard Generation Testing Suite Implementation
+
+### Summary
+Implemented a comprehensive testing suite for the flashcard generation functionality, allowing for independent testing of the API with various language samples. This enables evaluation of the quality and accuracy of generated flashcards without going through the full application workflow.
+
+### Changes Made
+
+#### 1. Unit Testing
+- Created unit tests for the flashcard generation API endpoint
+- Implemented test cases for various scenarios: missing text, invalid input, French text, Spanish text, API errors
+- Set up proper mocking for the OpenAI API responses
+- **Files created**: `src/pages/api/__tests__/flashcards.test.ts`
+
+#### 2. Integration Testing Framework
+- Implemented a test utility for flashcard generation with predefined test cases
+- Created test cases with varying levels of language correctness (perfect, minor errors, major errors, mixed language, beginner level)
+- Added functionality to save test results with timestamps
+- **Files created**: 
+  - `src/tests/flashcard-generator-test.ts`
+  - `src/tests/types.ts`
+
+#### 3. Command-line Tools
+- Developed a tool to run flashcard generation tests for specific languages
+- Created an analysis utility to visualize and evaluate test results
+- Implemented a custom testing script for quick evaluation of specific text inputs
+- **Files created**:
+  - `src/tests/run-flashcard-tests.ts`
+  - `src/tests/analyze-flashcard-results.ts`
+  - `src/tests/test-custom-flashcards.ts`
+
+#### 4. Documentation
+- Created a README for the testing suite with usage instructions
+- Added a dedicated CHANGELOG for the testing functionality
+- Updated the system overview document with testing information
+- **Files created/modified**:
+  - `src/tests/README.md`
+  - `src/tests/CHANGELOG.md`
+  - `SYSTEM_OVERVIEW.md` (updated)
+
+#### 5. Build Configuration
+- Added npm scripts to package.json for running the testing tools
+- Added tsx dependency for running TypeScript scripts directly
+- **Files modified**: `package.json`
+
+### Testing Notes
+- The testing suite allows for in-depth evaluation of the flashcard generation API
+- Test cases cover a wide range of language correctness levels to ensure robust functionality
+- Analysis tools provide insights into the quality and characteristics of generated flashcards
+
 ## [2025-02-27] Multi-Language Support Implementation
 
 ### Summary

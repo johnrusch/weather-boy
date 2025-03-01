@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-03-01T23:45:29.229Z",
+  "language": "french",
+  "inputText": "Je suis allé à le marché hier et j'ai acheté les légumes pour le dîner.",
+  "flashcards": [
+    {
+      "targetLanguage": "Je suis allé au marché hier",
+      "english": "I went to the market yesterday",
+      "type": "correction",
+      "originalText": "Je suis allé à le marché hier"
+    },
+    {
+      "targetLanguage": "J'ai acheté des légumes",
+      "english": "I bought some vegetables",
+      "type": "correction",
+      "originalText": "J'ai acheté les légumes"
+    },
+    {
+      "targetLanguage": "Je suis allé faire du shopping hier",
+      "english": "I went shopping yesterday",
+      "type": "variation",
+      "originalText": "Je suis allé au marché hier"
+    },
+    {
+      "targetLanguage": "J'ai pris des légumes",
+      "english": "I picked up some vegetables",
+      "type": "variation",
+      "originalText": "J'ai acheté des légumes"
+    },
+    {
+      "targetLanguage": "Pour le dîner",
+      "english": "For dinner",
+      "type": "translation",
+      "originalText": "Pour le dîner"
+    }
+  ]
+}
