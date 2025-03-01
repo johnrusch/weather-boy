@@ -30,5 +30,5 @@ export interface Transcription {
 export interface SessionSettings {
   promptCount: number;
   promptDuration: number;
-  language: 'french' | 'spanish';
+  // language field removed - we now always use the language from context
 }

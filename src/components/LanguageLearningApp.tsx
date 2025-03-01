@@ -11,59 +11,23 @@ import { TranscriptionsList } from "./TranscriptionsList";
 import { SessionSettingsForm } from "./SessionSettings";
 import { FlashcardsList } from "./FlashcardsList";
 import { CampaignFlashcardReview } from "./CampaignFlashcardReview";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const DEFAULT_SETTINGS: SessionSettings = {
   promptCount: 4,
   promptDuration: 5,
-  language: '', // Initialize with empty string
+  // Don't store language in settings anymore - always use from context
 };
 
 export default function LanguageLearningApp() {
-  // Get language from localStorage directly
-  const [localLanguage, setLocalLanguage] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('preferredLanguage') || 'french';
-    }
-    return 'french';
-  });
-
-  // Initialize settings with the detected language
-  const [settings, setSettings] = useState<SessionSettings>({
-    ...DEFAULT_SETTINGS,
-    language: localLanguage
-  });
-
-  // Listen for language changes and update both local state and settings
-  useEffect(() => {
-    const handleLanguageChange = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const newLanguage = customEvent.detail?.language;
-      if (newLanguage) {
-        console.log('Language change event received:', newLanguage);
-        setLocalLanguage(newLanguage);
-        setSettings(prev => ({
-          ...prev,
-          language: newLanguage
-        }));
-      }
-    };
-
-    window.addEventListener('languageChanged', handleLanguageChange);
-    
-    // Also check localStorage directly on mount
-    const savedLanguage = localStorage.getItem('preferredLanguage');
-    if (savedLanguage && savedLanguage !== localLanguage) {
-      setLocalLanguage(savedLanguage);
-      setSettings(prev => ({
-        ...prev,
-        language: savedLanguage
-      }));
-    }
-    
-    return () => {
-      window.removeEventListener('languageChanged', handleLanguageChange);
-    };
-  }, [localLanguage]);
+  // Get language from context
+  const { language: contextLanguage, setLanguage: setContextLanguage } = useLanguage();
+  
+  console.log("LanguageLearningApp: Current language from context:", contextLanguage);
+  console.log("LanguageLearningApp: localStorage value:", typeof window !== 'undefined' ? localStorage.getItem('preferredLanguage') : null);
+  
+  // Initialize settings with the defaults (no language included)
+  const [settings, setSettings] = useState<SessionSettings>(DEFAULT_SETTINGS);
 
   const [selectedPrompts, setSelectedPrompts] = useState<Prompt[]>([]);
   const [currentPromptIndex, setCurrentPromptIndex] = useState(-1);
@@ -114,7 +78,7 @@ export default function LanguageLearningApp() {
     try {
       const formData = new FormData();
       formData.append("file", audioBlob, "audio.webm");
-      formData.append("language", settings.language);
+      formData.append("language", contextLanguage);
 
       const response = await fetch("/api/transcribe", {
         method: "POST",
@@ -209,15 +173,25 @@ export default function LanguageLearningApp() {
     setIsProcessing(false);
     setAudioRecordings([]);
     
-    // Use settings.language when fetching prompts
+    // Always use the language from context for consistency
+    console.log("Starting free practice session with language:", contextLanguage);
+    
     try {
-      // Use the language-specific function
-      const prompts = await getRandomPromptsByLanguage(settings.language, settings.promptCount);
-      expectedRecordingsRef.current = prompts.length;
-      setSelectedPrompts(prompts);
-      console.log("Selected prompts:", prompts);
+      // Use the language-specific function with language from context
+      const prompts = await getRandomPromptsByLanguage(contextLanguage, settings.promptCount);
+      
+      // Override the duration of each prompt with the user setting (convert minutes to seconds)
+      const promptsWithCorrectDuration = prompts.map(prompt => ({
+        ...prompt,
+        language: contextLanguage, // Ensure language is consistent with context
+        duration: settings.promptDuration * 60 // Convert minutes to seconds
+      }));
+      
+      expectedRecordingsRef.current = promptsWithCorrectDuration.length;
+      setSelectedPrompts(promptsWithCorrectDuration);
+      console.log("Selected prompts:", promptsWithCorrectDuration);
       setCurrentPromptIndex(0);
-      setTimeLeft(prompts[0].duration);
+      setTimeLeft(promptsWithCorrectDuration[0].duration);
       startRecording();
     } catch (error) {
       console.error("Error getting prompts:", error);
@@ -281,10 +255,18 @@ export default function LanguageLearningApp() {
     if (!level) return;
 
     console.log("Starting campaign level with prompts:", level.prompts);
-    expectedRecordingsRef.current = level.prompts.length;
-    setSelectedPrompts(level.prompts);
+    
+    // Apply the selected language from context to the campaign prompts and adjust durations
+    const promptsWithSettings = level.prompts.map(prompt => ({
+      ...prompt,
+      language: contextLanguage, // Use language from context
+      duration: settings.promptDuration * 60 // Convert minutes to seconds
+    }));
+    
+    expectedRecordingsRef.current = promptsWithSettings.length;
+    setSelectedPrompts(promptsWithSettings);
     setCurrentPromptIndex(0);
-    setTimeLeft(level.prompts[0].duration);
+    setTimeLeft(promptsWithSettings[0].duration);
     setTranscriptions([]);
     setAudioRecordings([]); // Clear any previous recordings
     setMode('campaign');
@@ -391,7 +373,7 @@ export default function LanguageLearningApp() {
           prompt: selectedPrompts[promptIndex].text,
           mode,
           levelId: mode === "campaign" ? campaignState.progress.currentLevel : undefined,
-          language: settings.language
+          language: contextLanguage
         }),
       });
 
@@ -419,6 +401,8 @@ export default function LanguageLearningApp() {
     
     const newTranscriptions: Transcription[] = [];
     
+    console.log(`Processing ${audioRecordings.length} recordings with language: ${contextLanguage}`);
+    
     // Process each recording
     for (const recording of audioRecordings) {
       try {
@@ -434,7 +418,7 @@ export default function LanguageLearningApp() {
           body: JSON.stringify({
             transcription: transcriptionText,
             promptText: currentPrompt.text,
-            language: currentPrompt.language || settings.language, // Use prompt language or fallback to settings
+            language: contextLanguage, // Always use the context language
             levelId: mode === "campaign" ? campaignState.progress.currentLevel : 0
           }),
         });
@@ -452,7 +436,7 @@ export default function LanguageLearningApp() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             text: transcriptionText, 
-            language: currentPrompt.language || settings.language // Use prompt language or fallback to settings
+            language: contextLanguage // Always use the context language
           }),
         });
         
@@ -528,7 +512,7 @@ export default function LanguageLearningApp() {
         body: JSON.stringify({
           text: transcription,
           prompt: prompt,
-          language: settings.language
+          language: contextLanguage
         }),
       });
 
@@ -598,7 +582,7 @@ export default function LanguageLearningApp() {
   useEffect(() => {
     setCampaignState(prev => ({
       ...prev,
-      levels: getCampaignLevelForLanguage(initialCampaignLevels, settings.language)
+      levels: getCampaignLevelForLanguage(initialCampaignLevels, contextLanguage)
     }));
 
     // If we have transcriptions, don't refresh prompts during an active session
@@ -606,7 +590,7 @@ export default function LanguageLearningApp() {
       // Reset selected prompts if we're not in the middle of a session
       setSelectedPrompts([]);
     }
-  }, [settings.language, currentPromptIndex, transcriptions.length]);
+  }, [contextLanguage, currentPromptIndex, transcriptions.length]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 p-8">
@@ -718,7 +702,7 @@ export default function LanguageLearningApp() {
                 />
               )}
               <p className="text-gray-600 mb-8">
-                Ready to practice {settings.language}? You'll receive {settings.promptCount}{" "}
+                Ready to practice {contextLanguage}? You'll receive {settings.promptCount}{" "}
                 random prompts, with {settings.promptDuration} minutes for each
                 response.
               </p>
@@ -790,7 +774,7 @@ export default function LanguageLearningApp() {
                 <div className="mt-8 pt-8 border-t">
                   <FlashcardsList 
                     flashcards={transcriptions[0].flashcards} 
-                    language={transcriptions[0].prompt.language || settings.language}
+                    language={transcriptions[0].prompt.language || contextLanguage}
                   />
                 </div>
               )}

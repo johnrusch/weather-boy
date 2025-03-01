@@ -42,6 +42,18 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
     );
   };
 
+  const selectAllFlashcards = () => {
+    setSelectedFlashcards(prev => 
+      prev.map(card => ({ ...card, isSelected: true }))
+    );
+  };
+
+  const deselectAllFlashcards = () => {
+    setSelectedFlashcards(prev => 
+      prev.map(card => ({ ...card, isSelected: false }))
+    );
+  };
+
   const saveFlashcards = async () => {
     if (!userId) {
       setSaveResult("You must be logged in to save flashcards");
@@ -77,10 +89,7 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
 
       if (response.ok) {
         setSaveResult(`Successfully saved ${selected.length} flashcards`);
-        // Deselect all flashcards
-        setSelectedFlashcards((prev) =>
-          prev.map((card) => ({ ...card, isSelected: false }))
-        );
+        // Don't automatically deselect after saving, let user continue to work with their selection
       } else {
         setSaveResult(`Error: ${data.error || "Failed to save flashcards"}`);
       }
@@ -119,6 +128,8 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setSaveResult(`Successfully downloaded ${selected.length} flashcards`);
+    setTimeout(() => setSaveResult(null), 3000);
   };
 
   return (
@@ -137,6 +148,21 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-xl font-bold">Flashcards</h3>
         <div className="flex space-x-2">
+          {/* Selection Controls */}
+          <button 
+            onClick={selectAllFlashcards}
+            className="px-3 py-1 rounded text-sm bg-gray-200 hover:bg-gray-300"
+          >
+            Select All
+          </button>
+          <button 
+            onClick={deselectAllFlashcards}
+            className="px-3 py-1 rounded text-sm bg-gray-200 hover:bg-gray-300"
+          >
+            Deselect All
+          </button>
+          
+          {/* Save Button (only if user is logged in) */}
           {showSaveButton && userId && (
             <button 
               onClick={saveFlashcards}
@@ -158,6 +184,8 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
               )}
             </button>
           )}
+          
+          {/* Download Button */}
           <button 
             onClick={handleDownloadCSV}
             className="bg-green-600 text-white px-3 py-1 rounded text-sm flex items-center hover:bg-green-700"
@@ -177,18 +205,17 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
                 card.isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
               }`}
             >
-              {userId && (
-                <button 
-                  onClick={() => toggleFlashcard(index)}
-                  className={`absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center ${
-                    card.isSelected 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-200 hover:bg-gray-300'
-                  }`}
-                >
-                  {card.isSelected ? <Check size={14} /> : '+'}
-                </button>
-              )}
+              {/* Make selection button available to all users */}
+              <button 
+                onClick={() => toggleFlashcard(index)}
+                className={`absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center ${
+                  card.isSelected 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-200 hover:bg-gray-300'
+                }`}
+              >
+                {card.isSelected ? <Check size={14} /> : '+'}
+              </button>
               
               <div className="mb-2">
                 <span className="text-xs text-gray-500 uppercase">{card.type}</span>
