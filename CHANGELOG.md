@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2025-03-02] - Language Synchronization Improvements
+### Fixed
+- Fixed critical issue where changing language from dropdown wouldn't properly update throughout the application
+  - Purpose: To ensure language selections are consistently applied across the entire application
+  - Affected files:
+    - `src/layouts/SiteLayout.astro`: Removed duplicate language management script causing conflicts
+    - `src/components/HeaderLanguageSelector.tsx`: Improved language change flow to update localStorage first
+    - `src/contexts/LanguageContext.tsx`: Enhanced context/localStorage synchronization and validation
+    - `src/scripts/languageManager.js`: Completely reworked for robust language state management
+  - Changes:
+    - Added clear visual feedback when language is changing
+    - Implemented consistent order of operations (update localStorage → update context → trigger event → reload)
+    - Added MutationObserver to catch dynamically added selectors
+    - Added global debug function that can be called from console: `window.debugLanguage()`
+    - Added periodic validation to automatically fix any language state inconsistencies
+    - Improved error handling and user notifications
+    - Extended delay before page reload to ensure all state updates are processed
+
+## [2025-03-01] - Language Context Fixes
+### Fixed
+- Language context synchronization issue where Spanish was selected in UI but French was being used in the app
+  - Purpose: To ensure the language selected in the dropdown is correctly applied throughout the application
+  - Affected files:
+    - `src/contexts/LanguageContext.tsx`: Improved synchronization with localStorage and validation of language values
+    - `src/components/HeaderLanguageSelector.tsx`: Fixed to use context values directly instead of maintaining separate state
+    - `src/scripts/languageManager.js`: Enhanced to manage all language selectors consistently
+    - `src/components/LanguageLearningApp.tsx`: Updated to verify language from localStorage before using context
+  - Added files:
+    - `src/scripts/resetLanguage.js`: Utility script to reset language settings when issues occur
+    - `src/pages/debug-language.tsx`: Debug tool page to diagnose and fix language selection issues
+  - Changes:
+    - Improved validation of language values from localStorage
+    - Added cross-component communication via custom events
+    - Fixed race condition between context updates and localStorage
+    - Added more robust error handling and debugging
+    - Added utility to reset language settings when needed
+
 ## [2025-03-01]
 ### Added
 - Comprehensive transcription testing suite for code-switching scenarios

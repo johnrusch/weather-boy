@@ -52,44 +52,29 @@ const { title } = Astro.props;
 </div>
 
 <script>
-  // Simple, reliable language management script
+  // Import our dedicated language manager script
+  import '../scripts/languageManager.js';
+  
+  console.log('SiteLayout: Language manager script has been imported');
+  
+  // Add global language debugging function
   document.addEventListener('DOMContentLoaded', function() {
-    initializeLanguageSelector();
+    window.checkLanguageSystem = function() {
+      const contextValue = document.querySelector('#header-language-select')?.value || 'unknown';
+      const localStorageValue = localStorage.getItem('preferredLanguage') || 'not set';
+      
+      console.log('=== LANGUAGE SYSTEM STATUS ===');
+      console.log('localStorage value:', localStorageValue);
+      console.log('UI dropdown value:', contextValue);
+      console.log('===========================');
+      
+      return { 
+        localStorage: localStorageValue, 
+        uiValue: contextValue,
+        mismatch: localStorageValue !== contextValue
+      };
+    };
+    
+    console.log('Language debugging tools loaded. Use checkLanguageSystem() in console to debug.');
   });
-
-  function initializeLanguageSelector() {
-    const selector = document.getElementById('language-selector');
-    if (!selector) return;
-    
-    // Set initial value
-    const savedLanguage = localStorage.getItem('preferredLanguage') || 'french';
-    selector.value = savedLanguage;
-    
-    // Add change listener
-    selector.addEventListener('change', handleLanguageChange);
-    
-    console.log('Language selector initialized with:', savedLanguage);
-  }
-
-  function handleLanguageChange(event) {
-    const newLanguage = event.target.value;
-    
-    // Save to localStorage
-    localStorage.setItem('preferredLanguage', newLanguage);
-    
-    // Dispatch event for React components to listen to
-    window.dispatchEvent(new CustomEvent('languageChanged', { 
-      detail: { language: newLanguage }
-    }));
-    
-    console.log('Language changed to:', newLanguage);
-    
-    // Force reload the page to ensure all components pick up the new language
-    window.location.reload();
-  }
-
-  // Run on load and when content updates (for Astro client hydration)
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    initializeLanguageSelector();
-  }
 </script>

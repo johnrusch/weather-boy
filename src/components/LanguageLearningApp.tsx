@@ -23,8 +23,21 @@ export default function LanguageLearningApp() {
   // Get language from context
   const { language: contextLanguage, setLanguage: setContextLanguage } = useLanguage();
   
-  console.log("LanguageLearningApp: Current language from context:", contextLanguage);
-  console.log("LanguageLearningApp: localStorage value:", typeof window !== 'undefined' ? localStorage.getItem('preferredLanguage') : null);
+  // Enhanced logging
+  useEffect(() => {
+    // Log both context and localStorage values
+    const storedLanguage = typeof window !== 'undefined' ? localStorage.getItem('preferredLanguage') : null;
+    console.log("LanguageLearningApp: Current language from context:", contextLanguage);
+    console.log("LanguageLearningApp: localStorage value:", storedLanguage);
+    
+    // Detect mismatches
+    if (storedLanguage && storedLanguage !== contextLanguage) {
+      console.warn("LanguageLearningApp: DETECTED MISMATCH between context and localStorage!");
+      console.warn(`Context has '${contextLanguage}' but localStorage has '${storedLanguage}'`); 
+      // Force sync with localStorage
+      setContextLanguage(storedLanguage);
+    }
+  }, [contextLanguage]);
   
   // Initialize settings with the defaults (no language included)
   const [settings, setSettings] = useState<SessionSettings>(DEFAULT_SETTINGS);
@@ -78,7 +91,11 @@ export default function LanguageLearningApp() {
     try {
       const formData = new FormData();
       formData.append("file", audioBlob, "audio.webm");
-      formData.append("language", contextLanguage);
+      // Get the current language from context
+      const currentLanguage = typeof window !== 'undefined' ? 
+        (localStorage.getItem('preferredLanguage') || contextLanguage) : contextLanguage;
+      formData.append("language", currentLanguage);
+      console.log("transcribeAudio: Using language:", currentLanguage);
 
       const response = await fetch("/api/transcribe", {
         method: "POST",
@@ -173,17 +190,20 @@ export default function LanguageLearningApp() {
     setIsProcessing(false);
     setAudioRecordings([]);
     
-    // Always use the language from context for consistency
-    console.log("Starting free practice session with language:", contextLanguage);
+    // Double-check we have the latest language from localStorage
+    const currentLanguage = typeof window !== 'undefined' ? 
+      (localStorage.getItem('preferredLanguage') || contextLanguage) : contextLanguage;
+    
+    console.log("Starting free practice session with language:", currentLanguage);
     
     try {
-      // Use the language-specific function with language from context
-      const prompts = await getRandomPromptsByLanguage(contextLanguage, settings.promptCount);
+      // Use the language-specific function with verified language
+      const prompts = await getRandomPromptsByLanguage(currentLanguage, settings.promptCount);
       
       // Override the duration of each prompt with the user setting (convert minutes to seconds)
       const promptsWithCorrectDuration = prompts.map(prompt => ({
         ...prompt,
-        language: contextLanguage, // Ensure language is consistent with context
+        language: currentLanguage, // Ensure language is consistent
         duration: settings.promptDuration * 60 // Convert minutes to seconds
       }));
       
