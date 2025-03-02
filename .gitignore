@@ -7,3 +7,5 @@ node_modules
 dist
 dist-ssr
 *.local
+/src/tests/results
+/src/tests/samples

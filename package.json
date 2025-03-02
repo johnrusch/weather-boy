@@ -13,7 +13,9 @@
     "test:ui": "vitest --ui",
     "flashcard-tests": "tsx src/tests/run-flashcard-tests.ts",
     "analyze-flashcards": "tsx src/tests/analyze-flashcard-results.ts",
-    "test-custom-flashcards": "tsx src/tests/test-custom-flashcards.ts"
+    "test-custom-flashcards": "tsx src/tests/test-custom-flashcards.ts",
+    "transcription-tests": "tsx src/tests/run-transcription-tests.ts",
+    "generate-test-audio": "tsx src/tests/generate-test-audio.ts"
   },
   "dependencies": {
     "@astrojs/node": "^8.3.4",

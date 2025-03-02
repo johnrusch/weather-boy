@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [2025-03-01]
 ### Added
+- Comprehensive transcription testing suite for code-switching scenarios
+  - Purpose: To test and improve how the system handles mixing English words in target language contexts during transcription
+  - Affected files:
+    - `src/pages/api/transcribe.ts`: Improved prompt handling for code-switching
+    - `src/tests/transcription-test.ts`: Added new testing utility
+    - `src/tests/run-transcription-tests.ts`: Added test runner
+    - `src/tests/generate-test-audio.ts`: Added utility to generate test audio files
+    - `src/tests/TRANSCRIPTION-README.md`: Added detailed documentation
+    - `package.json`: Added npm scripts
+  - Features:
+    - Test cases for preserving English words in French and Spanish transcriptions
+    - Audio generation utility for creating test samples
+    - Language-specific prompts for French and Spanish transcriptions
+    - Enhanced handling of vocabulary gap scenarios where English words are used in target language contexts
+    - Comprehensive documentation on testing approach
+
+## [2025-03-01]
+### Added
 - Additional flashcard generation test cases for code-switching scenarios
   - Purpose: To test how the system handles mixing English words in target language contexts
   - Affected files:

@@ -1,5 +1,59 @@
 # Session Log
 
+## [2025-03-01] Transcription Testing Improvements
+
+### Summary
+Implemented and executed a comprehensive testing suite for the transcription API, focusing on how it handles code-switching scenarios. Significantly enhanced the prompt through iterative testing to prevent unintended translation of English words when users mix languages.
+
+### Changes Made
+
+#### 1. Transcription Testing Framework
+- Created a dedicated testing utility for evaluating transcription results
+- Implemented test cases for both French and Spanish code-switching scenarios
+- Added support for analyzing whether English phrases are preserved correctly
+- **Files created**:
+  - `src/tests/transcription-test.ts`
+  - `src/tests/run-transcription-tests.ts`
+
+#### 2. Test Audio Generation
+- Created a utility to generate test audio files using OpenAI's TTS API
+- Defined test cases for various code-switching scenarios and vocabulary gaps
+- **Files created**:
+  - `src/tests/generate-test-audio.ts`
+  - `src/tests/samples/` directory with test audio files
+
+#### 3. Transcription Prompt Enhancement
+- Improved the prompt for the Whisper model to better handle code-switching
+- Implemented language-specific prompts for French and Spanish with tailored examples
+- Added explicit instructions to preserve English words and not translate them
+- Provided more specific examples of correct transcription behavior for each language
+- **Files modified**:
+  - `src/pages/api/transcribe.ts`
+
+#### 4. Documentation
+- Created comprehensive documentation for the transcription testing suite
+- Added npm scripts to package.json for running tests
+- Updated changelogs to reflect the new additions
+- **Files created/modified**:
+  - `src/tests/TRANSCRIPTION-README.md`
+  - `package.json`
+  - `CHANGELOG.md`
+  - `SESSION_LOG.md`
+
+### Testing Results
+- **Initial Testing**: Only 2/4 tests passed - the system struggled with preserving single English vocabulary words like "museum" in the context of target languages
+- **Iterations**: Made multiple improvements to the prompt, with a focus on language-specific instructions
+- **Final Results**: All 4 tests now pass successfully
+  - French code-switching: ✅ Successfully preserves phrases like "I don't know how to say"
+  - Spanish code-switching: ✅ Successfully preserves phrases like "I can't remember how to say"
+  - French vocabulary gaps: ✅ Successfully preserves single English words like "museum", "paintings", "abstract"
+  - Spanish vocabulary gaps: ✅ Successfully preserves single English words in Spanish context
+
+### Key Improvements
+- Language-specific prompts with explicit instructions tailored to each language's characteristics
+- More specific examples featuring the exact vocabulary words used in tests
+- Strengthened directives about preserving English words, especially common nouns that might have target language equivalents
+
 ## [2025-03-01] Flashcard Generation Testing Suite Implementation - Code-Switching Update
 
 ### Summary
