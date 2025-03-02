@@ -1,14 +1,25 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
+import {
+  getStoredLanguage,
+  setStoredLanguage,
+  isValidLanguage,
+  changeLanguage,
+  LANGUAGE_DISPLAY_NAMES,
+  SUPPORTED_LANGUAGES,
+  type SupportedLanguage
+} from '../services/languageService';
 
 interface LanguageContextType {
-  language: string;
-  setLanguage: (language: string) => void;
+  language: SupportedLanguage;
+  setLanguage: (language: SupportedLanguage) => void;
+  changeLanguage: (language: SupportedLanguage) => void;
 }
 
 // Create context with default values
 const LanguageContext = createContext<LanguageContextType>({
   language: 'french',
   setLanguage: () => {},
+  changeLanguage: () => {}
 });
 
 // Hook for components to use the language context
@@ -16,22 +27,13 @@ export const useLanguage = () => useContext(LanguageContext);
 
 // Language selector component
 export const LanguageSelector: React.FC = () => {
-  const { language, setLanguage } = useLanguage();
+  const { language, changeLanguage } = useLanguage();
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLanguage = e.target.value;
-    console.log("LanguageSelector: changing to", newLanguage);
-    
-    // Update localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('preferredLanguage', newLanguage);
+    if (isValidLanguage(newLanguage)) {
+      changeLanguage(newLanguage);
     }
-    
-    // Update context
-    setLanguage(newLanguage);
-    
-    // Force page reload to apply changes everywhere
-    window.location.reload();
   };
 
   return (
@@ -45,8 +47,9 @@ export const LanguageSelector: React.FC = () => {
         onChange={handleLanguageChange}
         className="border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
       >
-        <option value="french">French</option>
-        <option value="spanish">Spanish</option>
+        {SUPPORTED_LANGUAGES.map(lang => (
+          <option key={lang} value={lang}>{LANGUAGE_DISPLAY_NAMES[lang]}</option>
+        ))}
       </select>
     </div>
   );
@@ -55,62 +58,63 @@ export const LanguageSelector: React.FC = () => {
 export const LanguageProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const [language, setLanguage] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      const storedLanguage = localStorage.getItem('preferredLanguage');
-      console.log("LanguageProvider: Initial localStorage value:", storedLanguage);
-      // Check if storedLanguage exists and is a valid option (french or spanish)
-      if (storedLanguage && ['french', 'spanish'].includes(storedLanguage)) {
-        return storedLanguage;
-      }
-    }
-    return 'french';
+  // Use the centralized language service to initialize state
+  const [language, setLanguageState] = useState<SupportedLanguage>(() => {
+    return getStoredLanguage();
   });
 
-  // Ensure we're always in sync with localStorage
+  // Set language wrapper that validates input
+  const setLanguage = (newLanguage: string) => {
+    if (isValidLanguage(newLanguage)) {
+      setLanguageState(newLanguage);
+    } else {
+      console.error('LanguageProvider: Invalid language:', newLanguage);
+    }
+  };
+
+  // Handle language change with reloading
+  const handleChangeLanguage = useMemo(() => {
+    return (newLanguage: SupportedLanguage) => {
+      changeLanguage(newLanguage);
+    };
+  }, []);
+
+  // Keep context and localStorage in sync
   useEffect(() => {
+    // 1. Storage event listener (cross-tab sync)
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'preferredLanguage' && event.newValue) {
-        console.log("LanguageProvider: Storage event detected:", event.newValue);
+      if (event.key === 'preferredLanguage' && event.newValue && isValidLanguage(event.newValue)) {
         if (event.newValue !== language) {
-          console.log("LanguageProvider: Setting language to match storage:", event.newValue);
-          setLanguage(event.newValue);
+          setLanguageState(event.newValue);
         }
       }
     };
     
-    const checkLocalStorage = () => {
-      if (typeof window !== 'undefined') {
-        const storedLanguage = localStorage.getItem('preferredLanguage');
-        if (storedLanguage && storedLanguage !== language && ['french', 'spanish'].includes(storedLanguage)) {
-          console.log("LanguageProvider: localStorage value different from context:", {
-            localStorage: storedLanguage,
-            context: language
-          });
-          setLanguage(storedLanguage);
-        }
-      }
-    };
-    
-    // Initial check
-    checkLocalStorage();
-    
-    // Listen for storage events (for cross-tab sync)
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Handle custom languageChanged events
+    // 2. Custom event listener for non-React components
     const handleLanguageChanged = (e: CustomEvent) => {
       const newLanguage = e.detail?.language;
-      if (newLanguage && newLanguage !== language && ['french', 'spanish'].includes(newLanguage)) {
-        console.log("LanguageProvider: languageChanged event detected:", newLanguage);
-        setLanguage(newLanguage);
+      if (newLanguage && newLanguage !== language && isValidLanguage(newLanguage)) {
+        setLanguageState(newLanguage);
       }
     };
     
+    // 3. Sync context with localStorage if they get out of sync
+    const syncWithStorage = () => {
+      const storedLanguage = getStoredLanguage(language);
+      if (storedLanguage !== language) {
+        setLanguageState(storedLanguage);
+      }
+    };
+    
+    // Initial sync
+    syncWithStorage();
+    
+    // Set up event listeners
+    window.addEventListener('storage', handleStorageChange);
     window.addEventListener('languageChanged', handleLanguageChanged as EventListener);
     
-    // Periodic check (backup in case other mechanisms fail)
-    const intervalId = setInterval(checkLocalStorage, 2000);
+    // Periodic check as backup (less frequent than before - every 5 seconds is enough)
+    const intervalId = setInterval(syncWithStorage, 5000);
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -119,22 +123,20 @@ export const LanguageProvider: React.FC<{
     };
   }, [language]);
 
-  // Update localStorage when language changes from the context
+  // Update localStorage when context changes
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('LanguageProvider: Language changed to:', language);
-      // Set localStorage with the current language value
-      localStorage.setItem('preferredLanguage', language);
-      
-      // Force any components looking at localStorage directly to reload
-      window.dispatchEvent(new CustomEvent('languageChanged', { 
-        detail: { language: language }
-      }));
-    }
+    setStoredLanguage(language);
   }, [language]);
 
+  // Context value with memoization to prevent unnecessary renders
+  const contextValue = useMemo(() => ({
+    language,
+    setLanguage,
+    changeLanguage: handleChangeLanguage
+  }), [language, handleChangeLanguage]);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );

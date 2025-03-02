@@ -1,8 +1,11 @@
+import type { SupportedLanguage } from '../services/languageService';
+
 export interface Prompt {
   text: string;
   duration: number;
   category: string;
-  language?: 'french' | 'spanish';
+  language?: SupportedLanguage;
+  hint?: string;
 }
 
 export interface Flashcard {

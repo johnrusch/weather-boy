@@ -1,5 +1,118 @@
 # Session Log
 
+## [2025-03-02] Final Refactoring - Complete LanguageLearningApp Decomposition and Cleanup
+
+### Summary
+Completed the final phase of refactoring by fully decomposing the LanguageLearningApp component, creating a simplified router component that delegates to specialized mode components. Also removed unused files to clean up the codebase.
+
+### Changes Made
+
+#### 1. Created New Components
+- Created `MainMenu.tsx` component to handle mode selection UI
+- Created simplified version of `LanguageLearningApp.tsx` that serves as a simple router
+
+#### 2. Documentation Updates
+- Updated `SYSTEM_OVERVIEW.md` to reflect the new component architecture
+- Updated this session log with details of the refactoring
+
+#### 3. Implementation Strategy
+- Preserved the original component as `LanguageLearningApp.old.tsx` for reference
+- Implemented a new streamlined version of `LanguageLearningApp.tsx`
+- This facilitates a clean transition while maintaining the ability to rollback if needed
+
+#### 4. Refactoring Result
+- Reduced 867-line component to approximately 30 lines
+- Moved specific functionality to dedicated components and hooks
+- Created a cleaner, more maintainable architecture
+
+#### 5. Codebase Cleanup
+- Removed unused components:
+  - `PracticeModeSelector.tsx`: Functionality now handled by MainMenu
+  - `RecordingsList.tsx`: No longer used after refactoring
+  - `Timer.tsx`: Replaced by the more specialized PromptTimer component
+
+**Files Created/Modified/Removed**:
+- `src/components/MainMenu.tsx` (new)
+- `src/components/LanguageLearningApp.tsx` (refactored)
+- `src/components/LanguageLearningApp.old.tsx` (original preserved)
+- `src/components/PracticeModeSelector.tsx` (removed)
+- `src/components/RecordingsList.tsx` (removed)
+- `src/components/Timer.tsx` (removed)
+- `SYSTEM_OVERVIEW.md` (updated)
+- `SESSION_LOG.md` (updated)
+
+## [2025-03-02] Component Decomposition and Service Extraction
+
+### Summary
+Continued the refactoring effort by extracting services and hooks from the monolithic LanguageLearningApp component. Created a service-oriented architecture with clear separation of concerns.
+
+### Changes Made
+
+#### 1. Centralized Services
+- Created `languageService.ts` to centralize language-related utilities and logic
+- Created `api.ts` to centralize API call functionality with consistent error handling
+- Created `recordingService.ts` to manage audio recording functionality
+- Created `promptService.ts` to handle prompt management and timer calculations
+- Created `campaignService.ts` to handle campaign-specific logic
+
+#### 2. Custom Hooks
+- Created `useLanguageSession` hook to manage the language learning session state
+- Created `useCampaignSession` hook to manage campaign-specific session functionality
+- Extracted complex state management from components to hooks
+
+#### 3. Component Decomposition
+- Extracted `PromptTimer` component to handle timer display
+- Extracted `PromptDisplay` component to handle prompt rendering
+- Extracted `TranscriptionResult` component to display transcription results
+- Extracted `CampaignLevelList` component to display campaign levels
+- Extracted `ProcessingIndicator` component to show processing state
+- Refactored `HeaderLanguageSelector` to use the new language service
+
+#### 4. Code Organization
+- Implemented consistent error handling patterns
+- Added type safety throughout the codebase
+- Improved component structure with clear separation of concerns
+- Enhanced code readability with better naming and organization
+
+#### 5. Key Improvements
+- Reduced component coupling, making code more maintainable
+- Centralized core functionality in service modules
+- Improved error handling and state management
+- Made components more focused and reusable
+- Added comprehensive types and interfaces
+
+## [2025-03-01] Code Refactoring and Optimization
+
+### Summary
+Performed a comprehensive code cleanup, refactoring, and optimization of the codebase to improve maintainability, reduce duplication, and enhance performance.
+
+### Changes Made
+
+#### 1. Decomposed Large Components
+- Split the LanguageLearningApp.tsx (867 lines) into smaller, more focused components
+- Extracted specialized functionality into dedicated components
+- Improved component organization and reusability
+
+#### 2. Centralized Language Management
+- Eliminated duplicate language handling code between Context and Components
+- Simplified the language switching mechanism
+- Standardized the approach to language selection throughout the application
+
+#### 3. Created API Service Layer
+- Extracted API calls from components into dedicated service modules
+- Implemented consistent error handling for all API operations
+- Added proper typing for API requests and responses
+
+#### 4. Optimized State Management
+- Reduced unnecessary re-renders
+- Improved state organization and initialization
+- Added memoization for expensive operations
+
+#### 5. Removed Code Duplication
+- Consolidated utility functions
+- Created shared hooks for common functionality
+- Standardized common patterns across the codebase
+
 ## [2025-03-01] Transcription Testing Improvements
 
 ### Summary

@@ -10,12 +10,38 @@ The application focuses on teaching conversational languages (French and Spanish
 ## Architecture
 
 ### Frontend Components
-- **LanguageLearningApp**: Main application component that manages the overall app state, audio recording, and session flow
-- **PromptCard**: Displays practice prompts for users to respond to
-- **SessionSettings**: Allows users to configure their practice session, including language selection
+
+#### Core Components
+- **LanguageLearningApp**: Main application component that serves as a router for different modes
+- **MainMenu**: Provides the mode selection interface 
+- **FreePracticeMode**: Manages the free practice session flow
+- **CampaignMode**: Manages the campaign mode session flow
+
+#### UI Components
+- **PromptDisplay**: Displays practice prompts for users to respond to
+- **PromptTimer**: Shows countdown timer with progress indicator
+- **ProcessingIndicator**: Displays the current processing stage
+- **TranscriptionResult**: Shows a single transcription with its evaluation and flashcards
+- **CampaignLevelList**: Displays campaign levels with their status
+
+#### Layout/Common Components
+- **HeaderLanguageSelector**: Allows language switching from any page
+- **PromptCard**: Displays individual prompts
+- **SessionSettings**: Allows users to configure their practice session
 - **TranscriptionsList**: Displays transcriptions of user responses with evaluations
 - **FlashcardsList**: Shows generated flashcards based on user responses
-- **Timer**: Manages countdown timer for timed responses
+
+### Service Layer
+- **languageService**: Centralizes language-related utilities and state management
+- **recordingService**: Manages audio recording functionality
+- **promptService**: Handles prompt management and timer calculations
+- **campaignService**: Manages campaign-specific logic and state updates
+- **api**: Centralizes all API calls with consistent error handling
+
+### Custom Hooks
+- **useLanguage**: Provides access to the language context
+- **useLanguageSession**: Manages the language learning session state
+- **useCampaignSession**: Manages campaign-specific session functionality
 
 ### Backend APIs
 - **/api/transcribe**: Transcribes audio recordings to text
