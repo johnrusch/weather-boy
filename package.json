@@ -15,7 +15,9 @@
     "analyze-flashcards": "tsx src/tests/analyze-flashcard-results.ts",
     "test-custom-flashcards": "tsx src/tests/test-custom-flashcards.ts",
     "transcription-tests": "tsx src/tests/run-transcription-tests.ts",
-    "generate-test-audio": "tsx src/tests/generate-test-audio.ts"
+    "generate-test-audio": "tsx src/tests/generate-test-audio.ts",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@astrojs/node": "^8.3.4",
@@ -38,6 +40,15 @@
     "tailwindcss": "^3.4.1"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^3.2.5",
+    "@storybook/addon-essentials": "^8.6.3",
+    "@storybook/addon-interactions": "^8.6.3",
+    "@storybook/addon-onboarding": "^8.6.3",
+    "@storybook/addon-webpack5-compiler-swc": "^2.1.0",
+    "@storybook/blocks": "^8.6.3",
+    "@storybook/react": "^8.6.3",
+    "@storybook/react-webpack5": "^8.6.3",
+    "@storybook/test": "^8.6.3",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
@@ -47,6 +58,7 @@
     "jsdom": "^25.0.1",
     "minimist": "^1.2.8",
     "node-mocks-http": "^1.16.1",
+    "storybook": "^8.6.3",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
     "typescript": "^5.6.3",

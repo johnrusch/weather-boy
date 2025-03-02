@@ -4,7 +4,7 @@
 
 export interface TestCase {
   id: string;
-  language: 'french' | 'spanish';
+  language: "french" | "spanish";
   description: string;
   text: string;
   expectedIssues?: string[];
@@ -13,7 +13,7 @@ export interface TestCase {
 export interface Flashcard {
   targetLanguage: string;
   english: string;
-  type: 'correction' | 'translation' | 'variation';
+  type: "correction" | "translation" | "variation";
   originalText?: string;
   isSelected?: boolean;
 }

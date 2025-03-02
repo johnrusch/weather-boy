@@ -6,5 +6,5 @@
 export function installFetch(): void {
   // Node.js 18+ has native fetch, so this is just a placeholder
   // In earlier Node versions, we would need to install node-fetch
-  console.log('Using native fetch API');
+  console.log("Using native fetch API");
 }

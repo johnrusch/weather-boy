@@ -1,24 +1,28 @@
-import type { APIRoute } from 'astro';
-import { connectDB } from '../../../lib/db';
-import { Flashcard } from '../../../models/flashcard';
+import type { APIRoute } from "astro";
+import { connectDB } from "../../../lib/db";
+import { Flashcard } from "../../../models/flashcard";
 
 export const DELETE: APIRoute = async ({ params, locals }) => {
   try {
     const auth = locals.auth();
     if (!auth.userId) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
     }
 
     await connectDB();
 
     // Find the flashcard and ensure it belongs to the user
-    const flashcard = await Flashcard.findOne({ 
+    const flashcard = await Flashcard.findOne({
       _id: params.id,
-      userId: auth.userId 
+      userId: auth.userId,
     });
 
     if (!flashcard) {
-      return new Response(JSON.stringify({ error: 'Flashcard not found' }), { status: 404 });
+      return new Response(JSON.stringify({ error: "Flashcard not found" }), {
+        status: 404,
+      });
     }
 
     // Delete the flashcard
@@ -26,7 +30,10 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (error) {
-    console.error('Error deleting flashcard:', error);
-    return new Response(JSON.stringify({ error: 'Failed to delete flashcard' }), { status: 500 });
+    console.error("Error deleting flashcard:", error);
+    return new Response(
+      JSON.stringify({ error: "Failed to delete flashcard" }),
+      { status: 500 },
+    );
   }
-}; 
+};

@@ -11,10 +11,12 @@ export const SessionSettingsForm: React.FC<SessionSettingsProps> = ({
   settings,
   onSettingsChange,
 }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
-    
-    if (name === 'promptCount' || name === 'promptDuration') {
+
+    if (name === "promptCount" || name === "promptDuration") {
       const numValue = Math.max(1, parseInt(value) || 1);
       onSettingsChange({
         ...settings,

@@ -1,11 +1,11 @@
-import type { APIRoute } from 'astro';
-import OpenAI from 'openai';
+import type { APIRoute } from "astro";
+import OpenAI from "openai";
 
 const API_KEY = import.meta.env.OPENAI_API_KEY;
 
 const openai = new OpenAI({
   apiKey: API_KEY,
-  dangerouslyAllowBrowser: true
+  dangerouslyAllowBrowser: true,
 });
 
 const getLanguageSpecificPrompt = (language: string, levelId: number) => {
@@ -16,7 +16,7 @@ const getLanguageSpecificPrompt = (language: string, levelId: number) => {
   2. Grammar and sentence structure (30 points)
   3. Vocabulary usage and appropriateness (20 points)
   4. Response relevance to prompt (20 points)`;
-  
+
   // Base prompt for Spanish
   const spanishBasePrompt = `You are a Spanish language teacher evaluating a student's spoken response. 
   Analyze the following aspects:
@@ -24,12 +24,13 @@ const getLanguageSpecificPrompt = (language: string, levelId: number) => {
   2. Grammar and sentence structure (30 points)
   3. Vocabulary usage and appropriateness (20 points)
   4. Response relevance to prompt (20 points)`;
-  
+
   // Select the appropriate base prompt
-  const basePrompt = language === 'spanish' ? spanishBasePrompt : frenchBasePrompt;
+  const basePrompt =
+    language === "spanish" ? spanishBasePrompt : frenchBasePrompt;
 
   // For French
-  if (language === 'french') {
+  if (language === "french") {
     switch (levelId) {
       case 1:
         return `${basePrompt}
@@ -48,9 +49,9 @@ const getLanguageSpecificPrompt = (language: string, levelId: number) => {
       default:
         return basePrompt;
     }
-  } 
+  }
   // For Spanish
-  else if (language === 'spanish') {
+  else if (language === "spanish") {
     switch (levelId) {
       case 1:
         return `${basePrompt}
@@ -70,7 +71,7 @@ const getLanguageSpecificPrompt = (language: string, levelId: number) => {
         return basePrompt;
     }
   }
-  
+
   return basePrompt;
 };
 
@@ -83,30 +84,42 @@ const functions = [
       properties: {
         score: {
           type: "number",
-          description: "Overall score (0-100)"
+          description: "Overall score (0-100)",
         },
         feedback: {
           type: "string",
-          description: "Specific feedback for the student's response"
+          description: "Specific feedback for the student's response",
         },
         percentageTargetLanguage: {
           type: "number",
-          description: "Estimated percentage of response that was in the target language (0-100)"
+          description:
+            "Estimated percentage of response that was in the target language (0-100)",
         },
         promptRelevance: {
           type: "string",
-          description: "Assessment of how relevant the response was to the prompt (highly relevant, somewhat relevant, not relevant)"
-        }
+          description:
+            "Assessment of how relevant the response was to the prompt (highly relevant, somewhat relevant, not relevant)",
+        },
       },
-      required: ["score", "feedback", "percentageTargetLanguage", "promptRelevance"]
-    }
-  }
+      required: [
+        "score",
+        "feedback",
+        "percentageTargetLanguage",
+        "promptRelevance",
+      ],
+    },
+  },
 ];
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { transcription, promptText, language = 'french', levelId = 0 } = body;
+    const {
+      transcription,
+      promptText,
+      language = "french",
+      levelId = 0,
+    } = body;
 
     const systemPrompt = getLanguageSpecificPrompt(language, levelId);
 
@@ -115,43 +128,49 @@ export const POST: APIRoute = async ({ request }) => {
       messages: [
         {
           role: "system",
-          content: systemPrompt
+          content: systemPrompt,
         },
         {
           role: "user",
-          content: `Prompt: ${promptText}\nStudent's Response: ${transcription}`
-        }
+          content: `Prompt: ${promptText}\nStudent's Response: ${transcription}`,
+        },
       ],
       functions: functions,
-      function_call: { name: "evaluate_language_response" }
+      function_call: { name: "evaluate_language_response" },
     });
 
     const functionCall = response.choices[0].message.function_call;
-    
+
     if (!functionCall) {
-      return new Response(JSON.stringify({ error: "No function call in response" }), {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
+      return new Response(
+        JSON.stringify({ error: "No function call in response" }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
     }
 
     const evaluationResult = JSON.parse(functionCall.arguments);
-    
+
     return new Response(JSON.stringify(evaluationResult), {
       status: 200,
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     });
   } catch (error) {
     console.error("Error evaluating response:", error);
-    return new Response(JSON.stringify({ error: "Failed to evaluate response" }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
+    return new Response(
+      JSON.stringify({ error: "Failed to evaluate response" }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
   }
 };

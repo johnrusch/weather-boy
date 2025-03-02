@@ -1,6 +1,11 @@
-import React from 'react';
-import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
-import FrenchLearningApp from './FrenchLearningApp';
+import React from "react";
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  RedirectToSignIn,
+} from "@clerk/clerk-react";
+import FrenchLearningApp from "./FrenchLearningApp";
 
 interface AuthWrapperProps {
   publishableKey: string;

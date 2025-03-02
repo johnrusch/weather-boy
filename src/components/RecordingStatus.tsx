@@ -1,11 +1,13 @@
-import React from 'react';
-import { Mic, MicOff } from 'lucide-react';
+import React from "react";
+import { Mic, MicOff } from "lucide-react";
 
 interface RecordingStatusProps {
   isRecording: boolean;
 }
 
-export const RecordingStatus: React.FC<RecordingStatusProps> = ({ isRecording }) => {
+export const RecordingStatus: React.FC<RecordingStatusProps> = ({
+  isRecording,
+}) => {
   return (
     <div className="flex items-center gap-2">
       {isRecording ? (

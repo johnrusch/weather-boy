@@ -3,8 +3,8 @@
  * Centralizes all API calls to maintain consistency and improve maintainability
  */
 
-import type { Prompt, Transcription } from '../types/prompt';
-import type { FlashcardType } from '../types/flashcard';
+import type { Prompt, Transcription } from "../types/prompt";
+import type { FlashcardType } from "../types/flashcard";
 
 // API Response Types
 interface TranscriptionResponse {
@@ -27,20 +27,23 @@ interface ProgressResponse {
     currentLevel: number;
     completedLevels: number[];
     bestScores: Record<number, number>;
-    flashcardRequirements?: Record<number, {
-      lastFailedAttempt: string;
-      requiredFlashcards: FlashcardType[];
-    }>;
+    flashcardRequirements?: Record<
+      number,
+      {
+        lastFailedAttempt: string;
+        requiredFlashcards: FlashcardType[];
+      }
+    >;
   };
 }
 
 // Custom error class for API errors
 export class ApiError extends Error {
   status: number;
-  
+
   constructor(message: string, status: number) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
     this.status = status;
   }
 }
@@ -52,30 +55,39 @@ async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     try {
       const errorData = await response.json();
-      throw new ApiError(errorData.error || 'API request failed', response.status);
+      throw new ApiError(
+        errorData.error || "API request failed",
+        response.status,
+      );
     } catch (e) {
       if (e instanceof ApiError) throw e;
-      throw new ApiError(`API request failed with status ${response.status}`, response.status);
+      throw new ApiError(
+        `API request failed with status ${response.status}`,
+        response.status,
+      );
     }
   }
-  
+
   return response.json() as Promise<T>;
 }
 
 /**
  * Transcribe audio to text
  */
-export async function transcribeAudio(audioBlob: Blob, language: string): Promise<string> {
+export async function transcribeAudio(
+  audioBlob: Blob,
+  language: string,
+): Promise<string> {
   try {
     const formData = new FormData();
     formData.append("file", audioBlob, "audio.webm");
     formData.append("language", language);
-    
+
     const response = await fetch("/api/transcribe", {
       method: "POST",
       body: formData,
     });
-    
+
     const data = await handleResponse<TranscriptionResponse>(response);
     return data.text;
   } catch (error) {
@@ -89,11 +101,11 @@ export async function transcribeAudio(audioBlob: Blob, language: string): Promis
  * Evaluate user's spoken response
  */
 export async function evaluateResponse(
-  transcription: string, 
-  promptText: string, 
+  transcription: string,
+  promptText: string,
   language: string,
-  mode: string = 'free',
-  levelId?: number
+  mode: string = "free",
+  levelId?: number,
 ): Promise<EvaluationResponse> {
   try {
     const response = await fetch("/api/evaluate", {
@@ -104,10 +116,10 @@ export async function evaluateResponse(
         prompt: promptText,
         language,
         mode,
-        levelId
+        levelId,
       }),
     });
-    
+
     return await handleResponse<EvaluationResponse>(response);
   } catch (error) {
     console.error("Evaluation error:", error);
@@ -120,19 +132,19 @@ export async function evaluateResponse(
  * Generate flashcards from transcription
  */
 export async function generateFlashcards(
-  transcription: string, 
-  language: string
+  transcription: string,
+  language: string,
 ): Promise<FlashcardType[]> {
   try {
     const response = await fetch("/api/flashcards", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        text: transcription, 
-        language 
+      body: JSON.stringify({
+        text: transcription,
+        language,
       }),
     });
-    
+
     const data = await handleResponse<FlashcardsResponse>(response);
     return data.flashcards;
   } catch (error) {
@@ -147,19 +159,19 @@ export async function generateFlashcards(
  */
 export async function fetchProgress(): Promise<ProgressResponse> {
   try {
-    const response = await fetch('/api/progress');
-    
+    const response = await fetch("/api/progress");
+
     // Special case for new users with no progress
     if (response.status === 404) {
       // Create initial progress
-      const createResponse = await fetch('/api/progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const createResponse = await fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       });
-      
+
       return await handleResponse<ProgressResponse>(createResponse);
     }
-    
+
     return await handleResponse<ProgressResponse>(response);
   } catch (error) {
     console.error("Progress fetch error:", error);
@@ -172,16 +184,16 @@ export async function fetchProgress(): Promise<ProgressResponse> {
  * Update user campaign progress
  */
 export async function updateProgress(
-  levelId: number, 
-  score: number
+  levelId: number,
+  score: number,
 ): Promise<ProgressResponse> {
   try {
-    const response = await fetch('/api/progress', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/progress", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ levelId, score }),
     });
-    
+
     return await handleResponse<ProgressResponse>(response);
   } catch (error) {
     console.error("Progress update error:", error);

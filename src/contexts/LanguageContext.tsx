@@ -1,4 +1,10 @@
-import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useMemo,
+} from "react";
 import {
   getStoredLanguage,
   setStoredLanguage,
@@ -6,8 +12,8 @@ import {
   changeLanguage,
   LANGUAGE_DISPLAY_NAMES,
   SUPPORTED_LANGUAGES,
-  type SupportedLanguage
-} from '../services/languageService';
+  type SupportedLanguage,
+} from "../services/languageService";
 
 interface LanguageContextType {
   language: SupportedLanguage;
@@ -17,9 +23,9 @@ interface LanguageContextType {
 
 // Create context with default values
 const LanguageContext = createContext<LanguageContextType>({
-  language: 'french',
+  language: "french",
   setLanguage: () => {},
-  changeLanguage: () => {}
+  changeLanguage: () => {},
 });
 
 // Hook for components to use the language context
@@ -38,7 +44,10 @@ export const LanguageSelector: React.FC = () => {
 
   return (
     <div className="flex items-center space-x-2">
-      <label htmlFor="language-select" className="text-sm font-medium text-gray-600">
+      <label
+        htmlFor="language-select"
+        className="text-sm font-medium text-gray-600"
+      >
         Language:
       </label>
       <select
@@ -47,8 +56,10 @@ export const LanguageSelector: React.FC = () => {
         onChange={handleLanguageChange}
         className="border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
       >
-        {SUPPORTED_LANGUAGES.map(lang => (
-          <option key={lang} value={lang}>{LANGUAGE_DISPLAY_NAMES[lang]}</option>
+        {SUPPORTED_LANGUAGES.map((lang) => (
+          <option key={lang} value={lang}>
+            {LANGUAGE_DISPLAY_NAMES[lang]}
+          </option>
         ))}
       </select>
     </div>
@@ -68,7 +79,7 @@ export const LanguageProvider: React.FC<{
     if (isValidLanguage(newLanguage)) {
       setLanguageState(newLanguage);
     } else {
-      console.error('LanguageProvider: Invalid language:', newLanguage);
+      console.error("LanguageProvider: Invalid language:", newLanguage);
     }
   };
 
@@ -83,21 +94,29 @@ export const LanguageProvider: React.FC<{
   useEffect(() => {
     // 1. Storage event listener (cross-tab sync)
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'preferredLanguage' && event.newValue && isValidLanguage(event.newValue)) {
+      if (
+        event.key === "preferredLanguage" &&
+        event.newValue &&
+        isValidLanguage(event.newValue)
+      ) {
         if (event.newValue !== language) {
           setLanguageState(event.newValue);
         }
       }
     };
-    
+
     // 2. Custom event listener for non-React components
     const handleLanguageChanged = (e: CustomEvent) => {
       const newLanguage = e.detail?.language;
-      if (newLanguage && newLanguage !== language && isValidLanguage(newLanguage)) {
+      if (
+        newLanguage &&
+        newLanguage !== language &&
+        isValidLanguage(newLanguage)
+      ) {
         setLanguageState(newLanguage);
       }
     };
-    
+
     // 3. Sync context with localStorage if they get out of sync
     const syncWithStorage = () => {
       const storedLanguage = getStoredLanguage(language);
@@ -105,20 +124,26 @@ export const LanguageProvider: React.FC<{
         setLanguageState(storedLanguage);
       }
     };
-    
+
     // Initial sync
     syncWithStorage();
-    
+
     // Set up event listeners
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('languageChanged', handleLanguageChanged as EventListener);
-    
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener(
+      "languageChanged",
+      handleLanguageChanged as EventListener,
+    );
+
     // Periodic check as backup (less frequent than before - every 5 seconds is enough)
     const intervalId = setInterval(syncWithStorage, 5000);
-    
+
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('languageChanged', handleLanguageChanged as EventListener);
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener(
+        "languageChanged",
+        handleLanguageChanged as EventListener,
+      );
       clearInterval(intervalId);
     };
   }, [language]);
@@ -129,11 +154,14 @@ export const LanguageProvider: React.FC<{
   }, [language]);
 
   // Context value with memoization to prevent unnecessary renders
-  const contextValue = useMemo(() => ({
-    language,
-    setLanguage,
-    changeLanguage: handleChangeLanguage
-  }), [language, handleChangeLanguage]);
+  const contextValue = useMemo(
+    () => ({
+      language,
+      setLanguage,
+      changeLanguage: handleChangeLanguage,
+    }),
+    [language, handleChangeLanguage],
+  );
 
   return (
     <LanguageContext.Provider value={contextValue}>

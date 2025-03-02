@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useStore } from '@nanostores/react';
-import { $authStore, $userStore } from '@clerk/astro/client';
-import { Loader2, Search, Tag, Trash2, Globe } from 'lucide-react';
-import type { Flashcard } from '../types/prompt';
-import { useLanguage } from '../contexts/LanguageContext';
+import React, { useState, useEffect } from "react";
+import { useStore } from "@nanostores/react";
+import { $authStore, $userStore } from "@clerk/astro/client";
+import { Loader2, Search, Tag, Trash2, Globe } from "lucide-react";
+import type { Flashcard } from "../types/prompt";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface SavedFlashcard extends Flashcard {
   _id: string;
@@ -15,23 +15,34 @@ interface SavedFlashcard extends Flashcard {
 // Helper function to get display name for language code
 const getLanguageDisplayName = (languageCode: string): string => {
   const languageMap: Record<string, string> = {
-    'french': 'French',
-    'spanish': 'Spanish'
+    french: "French",
+    spanish: "Spanish",
   };
-  return languageMap[languageCode] || languageCode.charAt(0).toUpperCase() + languageCode.slice(1);
+  return (
+    languageMap[languageCode] ||
+    languageCode.charAt(0).toUpperCase() + languageCode.slice(1)
+  );
 };
 
 export const SavedFlashcards: React.FC = () => {
   const auth = useStore($authStore);
   const user = useStore($userStore);
   const { language: currentLanguage } = useLanguage(); // Get current language from context
-  
-  console.log("SavedFlashcards: Current language from context:", currentLanguage);
-  console.log("SavedFlashcards: localStorage value:", typeof window !== 'undefined' ? localStorage.getItem('preferredLanguage') : null);
-  
+
+  console.log(
+    "SavedFlashcards: Current language from context:",
+    currentLanguage,
+  );
+  console.log(
+    "SavedFlashcards: localStorage value:",
+    typeof window !== "undefined"
+      ? localStorage.getItem("preferredLanguage")
+      : null,
+  );
+
   const [flashcards, setFlashcards] = useState<SavedFlashcard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showAllLanguages, setShowAllLanguages] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
@@ -52,50 +63,54 @@ export const SavedFlashcards: React.FC = () => {
     // Extract unique tags from flashcards matching the current language filter
     const relevantFlashcards = showAllLanguages
       ? flashcards
-      : flashcards.filter(card => {
+      : flashcards.filter((card) => {
           const cardLanguage = determineCardLanguage(card);
           return cardLanguage === currentLanguage;
         });
-    
+
     const uniqueTags = Array.from(
-      new Set(relevantFlashcards.flatMap((card: SavedFlashcard) => card.tags || []))
-    ).filter((tag): tag is string => typeof tag === 'string');
-    
+      new Set(
+        relevantFlashcards.flatMap((card: SavedFlashcard) => card.tags || []),
+      ),
+    ).filter((tag): tag is string => typeof tag === "string");
+
     setTags(uniqueTags);
   };
 
   // Helper function to consistently determine a card's language
   const determineCardLanguage = (card: SavedFlashcard): string => {
     if (card.language) return card.language;
-    if (card.french) return 'french';
+    if (card.french) return "french";
     if (card.targetLanguage) {
       const detected = detectLanguage(card.targetLanguage);
-      return detected !== 'unknown' ? detected : currentLanguage;
+      return detected !== "unknown" ? detected : currentLanguage;
     }
-    return 'unknown';
+    return "unknown";
   };
 
   const fetchFlashcards = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/saved-flashcards');
-      
+      const response = await fetch("/api/saved-flashcards");
+
       // Check if the response is ok
       if (!response.ok) {
-        console.warn(`Error fetching flashcards: ${response.status} ${response.statusText}`);
+        console.warn(
+          `Error fetching flashcards: ${response.status} ${response.statusText}`,
+        );
         useMockData();
         return;
       }
-      
+
       const data = await response.json();
-      
+
       // If data is empty or not an array, fall back to mock data
       if (!data || !Array.isArray(data) || data.length === 0) {
-        console.warn('No flashcards returned from API, using mock data');
+        console.warn("No flashcards returned from API, using mock data");
         useMockData();
         return;
       }
-      
+
       // Process flashcards to ensure language is set
       const processedFlashcards = data.map((card: SavedFlashcard) => {
         // If language is not set, determine it from targetLanguage or french property
@@ -104,12 +119,12 @@ export const SavedFlashcards: React.FC = () => {
         }
         return card;
       });
-      
+
       setFlashcards(processedFlashcards);
       console.log("Fetched flashcards:", processedFlashcards);
       console.log("Current language:", currentLanguage);
     } catch (error) {
-      console.error('Error fetching flashcards:', error);
+      console.error("Error fetching flashcards:", error);
       useMockData();
     } finally {
       setLoading(false);
@@ -119,114 +134,120 @@ export const SavedFlashcards: React.FC = () => {
   // Provide mock data when offline or experiencing backend issues
   const useMockData = () => {
     console.log("Using mock flashcards data");
-    
+
     // Create some sample flashcards for both languages
     const mockFlashcards: SavedFlashcard[] = [
       {
-        _id: 'mock-1',
-        type: 'vocab',
-        targetLanguage: 'perro',
-        english: 'dog',
-        language: 'spanish',
+        _id: "mock-1",
+        type: "vocab",
+        targetLanguage: "perro",
+        english: "dog",
+        language: "spanish",
         savedAt: new Date().toISOString(),
-        tags: ['animals', 'pets'],
-        example: 'El perro está ladrando'
+        tags: ["animals", "pets"],
+        example: "El perro está ladrando",
       },
       {
-        _id: 'mock-2',
-        type: 'vocab',
-        targetLanguage: 'gato',
-        english: 'cat',
-        language: 'spanish',
+        _id: "mock-2",
+        type: "vocab",
+        targetLanguage: "gato",
+        english: "cat",
+        language: "spanish",
         savedAt: new Date().toISOString(),
-        tags: ['animals', 'pets'],
-        example: 'El gato está durmiendo'
+        tags: ["animals", "pets"],
+        example: "El gato está durmiendo",
       },
       {
-        _id: 'mock-3',
-        type: 'phrase',
-        targetLanguage: '¿Cómo estás?',
-        english: 'How are you?',
-        language: 'spanish',
+        _id: "mock-3",
+        type: "phrase",
+        targetLanguage: "¿Cómo estás?",
+        english: "How are you?",
+        language: "spanish",
         savedAt: new Date().toISOString(),
-        tags: ['greetings'],
-        example: '¡Hola! ¿Cómo estás?'
+        tags: ["greetings"],
+        example: "¡Hola! ¿Cómo estás?",
       },
       {
-        _id: 'mock-4',
-        type: 'vocab',
-        french: 'chien',
-        english: 'dog',
-        language: 'french',
+        _id: "mock-4",
+        type: "vocab",
+        french: "chien",
+        english: "dog",
+        language: "french",
         savedAt: new Date().toISOString(),
-        tags: ['animals', 'pets'],
-        example: 'Le chien aboie'
+        tags: ["animals", "pets"],
+        example: "Le chien aboie",
       },
       {
-        _id: 'mock-5',
-        type: 'vocab',
-        french: 'chat',
-        english: 'cat',
-        language: 'french',
+        _id: "mock-5",
+        type: "vocab",
+        french: "chat",
+        english: "cat",
+        language: "french",
         savedAt: new Date().toISOString(),
-        tags: ['animals', 'pets'],
-        example: 'Le chat dort'
-      }
+        tags: ["animals", "pets"],
+        example: "Le chat dort",
+      },
     ];
-    
+
     setFlashcards(mockFlashcards);
   };
 
   // Try to detect language from text
   const detectLanguage = (text: string): string => {
-    if (!text) return 'unknown';
-    
+    if (!text) return "unknown";
+
     // Spanish-specific characters and patterns
-    const spanishPatterns = ['ñ', 'á', 'é', 'í', 'ó', 'ú', 'ü', '¿', '¡'];
-    const hasSpanishPatterns = spanishPatterns.some(pattern => text.includes(pattern));
-    
+    const spanishPatterns = ["ñ", "á", "é", "í", "ó", "ú", "ü", "¿", "¡"];
+    const hasSpanishPatterns = spanishPatterns.some((pattern) =>
+      text.includes(pattern),
+    );
+
     // French-specific characters and patterns
-    const frenchPatterns = ['ç', 'œ', 'à', 'è', 'ê', 'ô', 'û'];
-    const hasFrenchPatterns = frenchPatterns.some(pattern => text.includes(pattern));
-    
-    if (hasSpanishPatterns && !hasFrenchPatterns) return 'spanish';
-    if (hasFrenchPatterns && !hasSpanishPatterns) return 'french';
-    
-    return 'unknown';
+    const frenchPatterns = ["ç", "œ", "à", "è", "ê", "ô", "û"];
+    const hasFrenchPatterns = frenchPatterns.some((pattern) =>
+      text.includes(pattern),
+    );
+
+    if (hasSpanishPatterns && !hasFrenchPatterns) return "spanish";
+    if (hasFrenchPatterns && !hasSpanishPatterns) return "french";
+
+    return "unknown";
   };
 
   const deleteFlashcard = async (id: string) => {
     try {
       const response = await fetch(`/api/saved-flashcards/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
-      
+
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete flashcard');
+        throw new Error(data.error || "Failed to delete flashcard");
       }
-      
-      setFlashcards(cards => cards.filter(card => card._id !== id));
+
+      setFlashcards((cards) => cards.filter((card) => card._id !== id));
     } catch (error) {
-      console.error('Error deleting flashcard:', error);
+      console.error("Error deleting flashcard:", error);
     }
   };
 
   // Filter flashcards by search, tag, and language
-  const filteredFlashcards = flashcards.filter(card => {
-    const targetText = card.targetLanguage || card.french || '';
-    const englishText = card.english || '';
-    
-    const matchesSearch = 
+  const filteredFlashcards = flashcards.filter((card) => {
+    const targetText = card.targetLanguage || card.french || "";
+    const englishText = card.english || "";
+
+    const matchesSearch =
       targetText.toLowerCase().includes(searchTerm.toLowerCase()) ||
       englishText.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTag = !selectedTag || (card.tags && card.tags.includes(selectedTag));
-    
+    const matchesTag =
+      !selectedTag || (card.tags && card.tags.includes(selectedTag));
+
     // Only show the currently selected language unless showAllLanguages is true
     const cardLanguage = determineCardLanguage(card);
-    const matchesLanguage = showAllLanguages || cardLanguage === currentLanguage;
-    
+    const matchesLanguage =
+      showAllLanguages || cardLanguage === currentLanguage;
+
     return matchesSearch && matchesTag && matchesLanguage;
   });
 
@@ -234,22 +255,21 @@ export const SavedFlashcards: React.FC = () => {
   console.log("Current language in filter:", currentLanguage);
 
   // Group flashcards by language
-  const groupedFlashcards = filteredFlashcards.reduce<Record<string, SavedFlashcard[]>>(
-    (groups, card) => {
-      const language = determineCardLanguage(card);
-      if (!groups[language]) {
-        groups[language] = [];
-      }
-      groups[language].push(card);
-      return groups;
-    },
-    {}
-  );
+  const groupedFlashcards = filteredFlashcards.reduce<
+    Record<string, SavedFlashcard[]>
+  >((groups, card) => {
+    const language = determineCardLanguage(card);
+    if (!groups[language]) {
+      groups[language] = [];
+    }
+    groups[language].push(card);
+    return groups;
+  }, {});
 
   // Sort languages alphabetically but keep Unknown at the end
   const sortedLanguages = Object.keys(groupedFlashcards).sort((a, b) => {
-    if (a === 'unknown') return 1;
-    if (b === 'unknown') return -1;
+    if (a === "unknown") return 1;
+    if (b === "unknown") return -1;
     return a.localeCompare(b);
   });
 
@@ -265,7 +285,10 @@ export const SavedFlashcards: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={20}
+          />
           <input
             type="text"
             placeholder="Search flashcards..."
@@ -275,7 +298,7 @@ export const SavedFlashcards: React.FC = () => {
                      focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
-        
+
         <div className="flex flex-wrap gap-2 items-center">
           {/* Language Toggle */}
           <div className="flex items-center mr-3">
@@ -290,31 +313,36 @@ export const SavedFlashcards: React.FC = () => {
                 <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-all duration-300 peer-checked:translate-x-5"></div>
               </div>
               <span className="ml-2 text-sm text-gray-600 flex items-center">
-                <Globe size={16} className="mr-1" /> 
-                {showAllLanguages ? "All Languages" : `${getLanguageDisplayName(currentLanguage)} Only`}
+                <Globe size={16} className="mr-1" />
+                {showAllLanguages
+                  ? "All Languages"
+                  : `${getLanguageDisplayName(currentLanguage)} Only`}
               </span>
             </label>
           </div>
-          
+
           {/* Current Language Indicator */}
           <div className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm mr-3">
             Current App Language: {getLanguageDisplayName(currentLanguage)}
           </div>
-          
+
           {/* Tag Filter */}
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               <span className="text-sm text-gray-500 flex items-center mr-1">
                 <Tag size={16} className="mr-1" /> Tags:
               </span>
-              {tags.map(tag => (
+              {tags.map((tag) => (
                 <button
                   key={tag}
-                  onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                  onClick={() =>
+                    setSelectedTag(selectedTag === tag ? null : tag)
+                  }
                   className={`inline-flex items-center px-3 py-1 rounded-full text-sm
-                            ${selectedTag === tag
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ${
+                              selectedTag === tag
+                                ? "bg-indigo-600 text-white"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                             } transition-colors`}
                 >
                   {tag}
@@ -327,22 +355,27 @@ export const SavedFlashcards: React.FC = () => {
 
       {filteredFlashcards.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          {showAllLanguages 
-            ? "No flashcards found" 
+          {showAllLanguages
+            ? "No flashcards found"
             : `No flashcards found for ${getLanguageDisplayName(currentLanguage)}. Try switching to "All Languages" to see other flashcards.`}
         </div>
       ) : (
         <div className="space-y-8">
-          {sortedLanguages.map(language => (
+          {sortedLanguages.map((language) => (
             <div key={language} className="space-y-4">
               <h2 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center">
-                <Globe size={20} className="inline-block mr-2 text-indigo-600" />
-                {language === 'unknown' ? 'Other' : language.charAt(0).toUpperCase() + language.slice(1)}
+                <Globe
+                  size={20}
+                  className="inline-block mr-2 text-indigo-600"
+                />
+                {language === "unknown"
+                  ? "Other"
+                  : language.charAt(0).toUpperCase() + language.slice(1)}
                 <span className="ml-2 text-sm font-normal text-gray-500">
                   ({groupedFlashcards[language].length} flashcards)
                 </span>
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {groupedFlashcards[language].map((card) => (
                   <div
@@ -360,12 +393,14 @@ export const SavedFlashcards: React.FC = () => {
                     </button>
                     <div className={getTypeColor(card.type)}>{card.type}</div>
                     <div className="font-medium text-indigo-600 mb-1 mt-1">
-                      {card.targetLanguage || card.french || ''}
+                      {card.targetLanguage || card.french || ""}
                     </div>
-                    <div className="text-gray-600 mb-2">{card.english || ''}</div>
+                    <div className="text-gray-600 mb-2">
+                      {card.english || ""}
+                    </div>
                     {card.tags && card.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {card.tags.map(tag => (
+                        {card.tags.map((tag) => (
                           <span
                             key={tag}
                             className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
@@ -388,13 +423,13 @@ export const SavedFlashcards: React.FC = () => {
 
 const getTypeColor = (type: string) => {
   switch (type) {
-    case 'correction':
-      return 'text-amber-600 text-xs uppercase tracking-wide';
-    case 'translation':
-      return 'text-blue-600 text-xs uppercase tracking-wide';
-    case 'variation':
-      return 'text-green-600 text-xs uppercase tracking-wide';
+    case "correction":
+      return "text-amber-600 text-xs uppercase tracking-wide";
+    case "translation":
+      return "text-blue-600 text-xs uppercase tracking-wide";
+    case "variation":
+      return "text-green-600 text-xs uppercase tracking-wide";
     default:
-      return 'text-gray-600 text-xs uppercase tracking-wide';
+      return "text-gray-600 text-xs uppercase tracking-wide";
   }
 };

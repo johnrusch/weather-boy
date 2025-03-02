@@ -1,4 +1,4 @@
-import type { SupportedLanguage } from '../services/languageService';
+import type { SupportedLanguage } from "../services/languageService";
 
 export interface Prompt {
   text: string;
@@ -11,7 +11,7 @@ export interface Prompt {
 export interface Flashcard {
   targetLanguage: string;
   english: string;
-  type: 'correction' | 'translation' | 'variation';
+  type: "correction" | "translation" | "variation";
   originalText?: string;
 }
 

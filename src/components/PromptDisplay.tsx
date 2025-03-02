@@ -3,9 +3,9 @@
  * Displays the current prompt and recording status
  */
 
-import React from 'react';
-import type { Prompt } from '../types/prompt';
-import PromptTimer from './PromptTimer';
+import React from "react";
+import type { Prompt } from "../types/prompt";
+import PromptTimer from "./PromptTimer";
 
 interface PromptDisplayProps {
   prompt: Prompt;
@@ -22,7 +22,7 @@ export function PromptDisplay({
   totalPrompts,
   timeLeft,
   isRecording,
-  onSkip
+  onSkip,
 }: PromptDisplayProps) {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
@@ -46,19 +46,21 @@ export function PromptDisplay({
           </button>
         </div>
       </div>
-      
+
       {/* Timer */}
-      <PromptTimer 
-        timeLeft={timeLeft} 
+      <PromptTimer
+        timeLeft={timeLeft}
         totalDuration={prompt.duration}
-        className="mb-6" 
+        className="mb-6"
       />
-      
+
       {/* Prompt text */}
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Speak the following:</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          Speak the following:
+        </h3>
         <p className="text-xl font-medium text-gray-800">{prompt.text}</p>
-        
+
         {prompt.hint && (
           <div className="mt-4 text-sm text-gray-600">
             <span className="font-medium">Hint:</span> {prompt.hint}

@@ -1,6 +1,6 @@
-# French Learning Application
+# Weather Boy Language Learning Application
 
-A React-based application for practicing French language skills through interactive speaking exercises.
+A modern React-based application for practicing French and Spanish language skills through interactive speaking exercises.
 
 ## Features
 
@@ -8,8 +8,12 @@ A React-based application for practicing French language skills through interact
 - Speech recording and transcription
 - Real-time feedback on pronunciation
 - Customizable session settings
+- Two learning modes: Free Practice and Campaign
+- Multiple language support (French and Spanish)
+- Personalized flashcard generation
 - User authentication with Clerk
 - Data persistence with MongoDB Atlas
+- Service-oriented architecture for maintainability
 
 ## Tech Stack
 
@@ -29,19 +33,44 @@ The application uses Clerk for user authentication and management. All routes ar
 - Secure session management
 - MongoDB integration for user data storage
 
+## Architecture
+
+This application follows a service-oriented architecture with React components:
+
+### Core Components
+- `LanguageLearningApp`: Main router component
+- `MainMenu`: Provides mode selection interface
+- `FreePracticeMode`: Manages free practice sessions
+- `CampaignMode`: Manages campaign gameplay and progress
+
+### Service Layer
+- `languageService`: Centralizes language-related utilities
+- `recordingService`: Manages audio recording functionality
+- `promptService`: Handles prompt management and timer calculations
+- `campaignService`: Manages campaign-specific logic
+- `api`: Centralizes all API calls
+
+### Custom Hooks
+- `useLanguageSession`: Manages language learning session state
+- `useCampaignSession`: Manages campaign-specific session functionality
+
 ## Project Structure
 
 ```
 src/
 ├── components/          # React components
-├── data/               # Static data and prompts
-├── db/                 # Database configuration
-├── layouts/            # Page layouts
-├── lib/                # Utility functions
-├── models/             # Data models
-├── pages/              # Route pages
-├── types/              # TypeScript type definitions
-└── middleware.ts       # Auth middleware
+├── contexts/            # React context providers
+├── data/                # Static data and prompts
+├── db/                  # Database configuration
+├── hooks/               # Custom React hooks
+├── layouts/             # Page layouts
+├── lib/                 # Utility functions
+├── models/              # Data models
+├── pages/               # Route pages
+├── services/            # Business logic services
+├── tests/               # Test files and utilities
+├── types/               # TypeScript type definitions
+└── middleware.ts        # Auth middleware
 ```
 
 ## Getting Started

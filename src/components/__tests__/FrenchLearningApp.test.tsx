@@ -63,7 +63,7 @@ const mockFetch = vi.fn(() =>
           bestScores: {},
         },
       }),
-  })
+  }),
 );
 global.fetch = mockFetch;
 
@@ -77,10 +77,10 @@ describe("FrenchLearningApp", () => {
     render(<FrenchLearningApp />);
     await waitFor(() => {
       expect(
-        screen.getByRole("button", { name: /campaign mode/i })
+        screen.getByRole("button", { name: /campaign mode/i }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /free practice/i })
+        screen.getByRole("button", { name: /free practice/i }),
       ).toBeInTheDocument();
     });
   });
@@ -94,14 +94,14 @@ describe("FrenchLearningApp", () => {
 
       // Select Free Practice mode
       await userEvent.click(
-        screen.getByRole("button", { name: /free practice/i })
+        screen.getByRole("button", { name: /free practice/i }),
       );
 
       // Now session settings should be visible
       expect(screen.getByText("Session Settings")).toBeInTheDocument();
       expect(screen.getByLabelText("Number of Prompts")).toBeInTheDocument();
       expect(
-        screen.getByLabelText("Response Time (minutes)")
+        screen.getByLabelText("Response Time (minutes)"),
       ).toBeInTheDocument();
       expect(screen.getByText("Start Session")).toBeInTheDocument();
     });
@@ -111,14 +111,14 @@ describe("FrenchLearningApp", () => {
     it("displays campaign levels when campaign mode is selected", async () => {
       render(<FrenchLearningApp />);
       await userEvent.click(
-        screen.getByRole("button", { name: /campaign mode/i })
+        screen.getByRole("button", { name: /campaign mode/i }),
       );
 
       await waitFor(() => {
         expect(screen.getByText("Basic Introductions")).toBeInTheDocument();
         expect(screen.getByText("Home and Family")).toBeInTheDocument();
         expect(
-          screen.getByText("Learn essential French phrases")
+          screen.getByText("Learn essential French phrases"),
         ).toBeInTheDocument();
       });
     });
@@ -126,12 +126,12 @@ describe("FrenchLearningApp", () => {
     it("shows locked status for unavailable levels", async () => {
       render(<FrenchLearningApp />);
       await userEvent.click(
-        screen.getByRole("button", { name: /campaign mode/i })
+        screen.getByRole("button", { name: /campaign mode/i }),
       );
 
       await waitFor(() => {
         expect(
-          screen.getByText("🔒 Complete previous level")
+          screen.getByText("🔒 Complete previous level"),
         ).toBeInTheDocument();
       });
     });
@@ -139,7 +139,7 @@ describe("FrenchLearningApp", () => {
     it("allows starting an unlocked level", async () => {
       render(<FrenchLearningApp />);
       await userEvent.click(
-        screen.getByRole("button", { name: /campaign mode/i })
+        screen.getByRole("button", { name: /campaign mode/i }),
       );
 
       await waitFor(() => {
@@ -157,7 +157,7 @@ describe("FrenchLearningApp", () => {
 
     // Go to Free Practice
     await userEvent.click(
-      screen.getByRole("button", { name: /free practice/i })
+      screen.getByRole("button", { name: /free practice/i }),
     );
     expect(screen.getByText("Session Settings")).toBeInTheDocument();
 
@@ -166,10 +166,10 @@ describe("FrenchLearningApp", () => {
 
     // Check that mode selection is visible again
     expect(
-      screen.getByRole("button", { name: /campaign mode/i })
+      screen.getByRole("button", { name: /campaign mode/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /free practice/i })
+      screen.getByRole("button", { name: /free practice/i }),
     ).toBeInTheDocument();
   });
 });

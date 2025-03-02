@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Download, BookmarkPlus, Check, Loader2, X } from 'lucide-react';
-import { Flashcard } from '../types/prompt';
-import { useStore } from '@nanostores/react';
-import { $authStore, $userStore } from '@clerk/astro/client';
+import React, { useState, useEffect } from "react";
+import { Download, BookmarkPlus, Check, Loader2, X } from "lucide-react";
+import { Flashcard } from "../types/prompt";
+import { useStore } from "@nanostores/react";
+import { $authStore, $userStore } from "@clerk/astro/client";
 
 interface FlashcardsListProps {
   flashcards: Flashcard[];
@@ -14,8 +14,8 @@ interface FlashcardsListProps {
 export const FlashcardsList: React.FC<FlashcardsListProps> = ({
   flashcards,
   promptId,
-  language = 'french',
-  showSaveButton = true
+  language = "french",
+  showSaveButton = true,
 }) => {
   const auth = useStore($authStore);
   const user = useStore($userStore);
@@ -30,27 +30,27 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
       flashcards.map((card) => ({
         ...card,
         isSelected: true,
-      }))
+      })),
     );
   }, [flashcards]);
 
   const toggleFlashcard = (index: number) => {
     setSelectedFlashcards((prev) =>
       prev.map((card, i) =>
-        i === index ? { ...card, isSelected: !card.isSelected } : card
-      )
+        i === index ? { ...card, isSelected: !card.isSelected } : card,
+      ),
     );
   };
 
   const selectAllFlashcards = () => {
-    setSelectedFlashcards(prev => 
-      prev.map(card => ({ ...card, isSelected: true }))
+    setSelectedFlashcards((prev) =>
+      prev.map((card) => ({ ...card, isSelected: true })),
     );
   };
 
   const deselectAllFlashcards = () => {
-    setSelectedFlashcards(prev => 
-      prev.map(card => ({ ...card, isSelected: false }))
+    setSelectedFlashcards((prev) =>
+      prev.map((card) => ({ ...card, isSelected: false })),
     );
   };
 
@@ -65,7 +65,7 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
 
     try {
       const selected = selectedFlashcards.filter((card) => card.isSelected);
-      
+
       if (selected.length === 0) {
         setSaveResult("No flashcards selected");
         setIsSaving(false);
@@ -79,9 +79,9 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
           flashcards: selected.map((card) => ({
             ...card,
             language, // Include the language
-            userId
+            userId,
           })),
-          promptId
+          promptId,
         }),
       });
 
@@ -103,28 +103,35 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
 
   const handleDownloadCSV = () => {
     const selected = selectedFlashcards.filter((card) => card.isSelected);
-    
+
     if (selected.length === 0) {
       setSaveResult("No flashcards selected for download");
       return;
     }
-    
-    const languageCapitalized = language.charAt(0).toUpperCase() + language.slice(1);
+
+    const languageCapitalized =
+      language.charAt(0).toUpperCase() + language.slice(1);
     let csvContent = `${languageCapitalized},English,Type\n`;
-    
-    selected.forEach(card => {
+
+    selected.forEach((card) => {
       // Safely handle quotes in the text fields
-      const targetLanguage = card.targetLanguage?.replace(/"/g, '""') || card.french?.replace(/"/g, '""') || '';
+      const targetLanguage =
+        card.targetLanguage?.replace(/"/g, '""') ||
+        card.french?.replace(/"/g, '""') ||
+        "";
       const english = card.english.replace(/"/g, '""');
-      
+
       csvContent += `"${targetLanguage}","${english}","${card.type}"\n`;
     });
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${languageCapitalized}_Flashcards_${new Date().toISOString().split('T')[0]}.csv`);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `${languageCapitalized}_Flashcards_${new Date().toISOString().split("T")[0]}.csv`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -136,9 +143,11 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
     <div className="mt-4 relative">
       {/* Toast Notification */}
       {saveResult && (
-        <div 
+        <div
           className={`absolute top-0 right-0 p-3 rounded shadow-md z-50 ${
-            saveResult.startsWith('Successfully') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            saveResult.startsWith("Successfully")
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
           }`}
         >
           {saveResult}
@@ -149,26 +158,28 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
         <h3 className="text-xl font-bold">Flashcards</h3>
         <div className="flex space-x-2">
           {/* Selection Controls */}
-          <button 
+          <button
             onClick={selectAllFlashcards}
             className="px-3 py-1 rounded text-sm bg-gray-200 hover:bg-gray-300"
           >
             Select All
           </button>
-          <button 
+          <button
             onClick={deselectAllFlashcards}
             className="px-3 py-1 rounded text-sm bg-gray-200 hover:bg-gray-300"
           >
             Deselect All
           </button>
-          
+
           {/* Save Button (only if user is logged in) */}
           {showSaveButton && userId && (
-            <button 
+            <button
               onClick={saveFlashcards}
               disabled={isSaving}
               className={`px-3 py-1 rounded text-sm flex items-center ${
-                isSaving ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                isSaving
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
               }`}
             >
               {isSaving ? (
@@ -184,9 +195,9 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
               )}
             </button>
           )}
-          
+
           {/* Download Button */}
-          <button 
+          <button
             onClick={handleDownloadCSV}
             className="bg-green-600 text-white px-3 py-1 rounded text-sm flex items-center hover:bg-green-700"
           >
@@ -199,30 +210,36 @@ export const FlashcardsList: React.FC<FlashcardsListProps> = ({
       {flashcards.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {selectedFlashcards.map((card, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`border rounded-lg p-4 relative ${
-                card.isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                card.isSelected
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200"
               }`}
             >
               {/* Make selection button available to all users */}
-              <button 
+              <button
                 onClick={() => toggleFlashcard(index)}
                 className={`absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center ${
-                  card.isSelected 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-gray-200 hover:bg-gray-300'
+                  card.isSelected
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 hover:bg-gray-300"
                 }`}
               >
-                {card.isSelected ? <Check size={14} /> : '+'}
+                {card.isSelected ? <Check size={14} /> : "+"}
               </button>
-              
+
               <div className="mb-2">
-                <span className="text-xs text-gray-500 uppercase">{card.type}</span>
-                <span className="font-medium text-green-800">{card.targetLanguage}</span>
+                <span className="text-xs text-gray-500 uppercase">
+                  {card.type}
+                </span>
+                <span className="font-medium text-green-800">
+                  {card.targetLanguage}
+                </span>
                 <p className="text-gray-800 mt-1">{card.english}</p>
               </div>
-              
+
               {card.originalText && (
                 <div className="mt-2 text-sm">
                   <span className="text-xs text-gray-500">Original:</span>

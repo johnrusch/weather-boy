@@ -11,27 +11,27 @@ interface ReviewResult {
 }
 
 export function calculateNextReview(
-  card: Card, 
-  response: 'again' | 'hard' | 'good' | 'easy'
+  card: Card,
+  response: "again" | "hard" | "good" | "easy",
 ): ReviewResult {
   let { interval, easeFactor } = card;
   const now = new Date();
 
   // SuperMemo-2 algorithm with modifications
   switch (response) {
-    case 'again':
+    case "again":
       // Reset interval, decrease ease factor
       interval = 1;
       easeFactor = Math.max(1.3, easeFactor - 0.2);
       break;
 
-    case 'hard':
+    case "hard":
       // Increase interval by 1.2, decrease ease factor
       interval = Math.max(1, interval * 1.2);
       easeFactor = Math.max(1.3, easeFactor - 0.15);
       break;
 
-    case 'good':
+    case "good":
       // Normal interval increase
       if (card.reviewCount === 0) {
         interval = 1;
@@ -42,7 +42,7 @@ export function calculateNextReview(
       }
       break;
 
-    case 'easy':
+    case "easy":
       // Larger interval increase, increase ease factor
       interval = Math.round(interval * easeFactor * 1.3);
       easeFactor = Math.min(2.5, easeFactor + 0.15);
@@ -56,6 +56,6 @@ export function calculateNextReview(
   return {
     nextReviewDate,
     interval,
-    easeFactor
+    easeFactor,
   };
-} 
+}

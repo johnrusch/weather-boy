@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useStore } from '@nanostores/react';
-import { $authStore } from '@clerk/astro/client';
-import { Loader2, RotateCw, ThumbsUp, ThumbsDown, BookOpen, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useStore } from "@nanostores/react";
+import { $authStore } from "@clerk/astro/client";
+import {
+  Loader2,
+  RotateCw,
+  ThumbsUp,
+  ThumbsDown,
+  BookOpen,
+  Calendar,
+} from "lucide-react";
 
 interface StudyFlashcard {
   _id: string;
@@ -10,7 +17,7 @@ interface StudyFlashcard {
   type: string;
   originalText?: string;
   promptId: string;
-  confidence: 'again' | 'hard' | 'good' | 'easy';
+  confidence: "again" | "hard" | "good" | "easy";
   interval: number;
   easeFactor: number;
   reviewCount: number;
@@ -38,7 +45,7 @@ export const StudyInterface: React.FC = () => {
     todayCount: 0,
     streakDays: 0,
     totalReviewed: 0,
-    masteredCount: 0
+    masteredCount: 0,
   });
 
   useEffect(() => {
@@ -50,51 +57,53 @@ export const StudyInterface: React.FC = () => {
 
   const fetchStudyStats = async () => {
     try {
-      const response = await fetch('/api/study/stats');
-      if (!response.ok) throw new Error('Failed to fetch study stats');
+      const response = await fetch("/api/study/stats");
+      if (!response.ok) throw new Error("Failed to fetch study stats");
       const data = await response.json();
       setStats(data);
     } catch (error) {
-      console.error('Error fetching study stats:', error);
+      console.error("Error fetching study stats:", error);
     }
   };
 
   const fetchNextCard = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/study/next-card');
-      if (!response.ok) throw new Error('Failed to fetch next card');
+      const response = await fetch("/api/study/next-card");
+      if (!response.ok) throw new Error("Failed to fetch next card");
       const data = await response.json();
       setCurrentCard(data.card);
       setRemainingCards(data.remainingCount);
       setShowAnswer(false);
     } catch (error) {
-      console.error('Error fetching next card:', error);
+      console.error("Error fetching next card:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResponse = async (response: 'again' | 'hard' | 'good' | 'easy') => {
+  const handleResponse = async (
+    response: "again" | "hard" | "good" | "easy",
+  ) => {
     if (!currentCard) return;
 
     try {
       await fetch(`/api/study/record-response/${currentCard._id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ response })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ response }),
       });
 
       // Update stats immediately for better UX
-      setStats(prev => ({
+      setStats((prev) => ({
         ...prev,
         todayCount: prev.todayCount + 1,
-        totalReviewed: prev.totalReviewed + 1
+        totalReviewed: prev.totalReviewed + 1,
       }));
 
       fetchNextCard();
     } catch (error) {
-      console.error('Error recording response:', error);
+      console.error("Error recording response:", error);
     }
   };
 
@@ -169,7 +178,9 @@ export const StudyInterface: React.FC = () => {
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500 mb-1">Original Context:</p>
               <p className="text-gray-700">{currentCard.prompt.text}</p>
-              <p className="text-sm text-gray-500 mt-2">Category: {currentCard.prompt.category}</p>
+              <p className="text-sm text-gray-500 mt-2">
+                Category: {currentCard.prompt.category}
+              </p>
             </div>
           )}
 
@@ -178,7 +189,7 @@ export const StudyInterface: React.FC = () => {
             <div className="text-2xl font-medium mb-4">
               {showAnswer ? currentCard.targetLanguage : currentCard.english}
             </div>
-            
+
             {!showAnswer ? (
               <button
                 onClick={() => setShowAnswer(true)}
@@ -192,10 +203,10 @@ export const StudyInterface: React.FC = () => {
                 <div className="text-2xl font-medium mb-6 text-indigo-600">
                   {currentCard.english}
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <button
-                    onClick={() => handleResponse('again')}
+                    onClick={() => handleResponse("again")}
                     className="px-4 py-2 bg-red-600 text-white rounded-lg
                              hover:bg-red-700 transition-colors"
                     title="Review again soon"
@@ -203,7 +214,7 @@ export const StudyInterface: React.FC = () => {
                     Didn't Know
                   </button>
                   <button
-                    onClick={() => handleResponse('hard')}
+                    onClick={() => handleResponse("hard")}
                     className="px-4 py-2 bg-yellow-600 text-white rounded-lg
                              hover:bg-yellow-700 transition-colors"
                     title="Was difficult to recall"
@@ -211,7 +222,7 @@ export const StudyInterface: React.FC = () => {
                     Hard
                   </button>
                   <button
-                    onClick={() => handleResponse('good')}
+                    onClick={() => handleResponse("good")}
                     className="px-4 py-2 bg-green-600 text-white rounded-lg
                              hover:bg-green-700 transition-colors"
                     title="Remembered with some effort"
@@ -219,7 +230,7 @@ export const StudyInterface: React.FC = () => {
                     Good
                   </button>
                   <button
-                    onClick={() => handleResponse('easy')}
+                    onClick={() => handleResponse("easy")}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg
                              hover:bg-blue-700 transition-colors"
                     title="Remembered easily"
@@ -230,7 +241,9 @@ export const StudyInterface: React.FC = () => {
 
                 {/* Added hint about card type */}
                 <div className="mt-4 text-sm text-gray-500">
-                  Card Type: {currentCard.type.charAt(0).toUpperCase() + currentCard.type.slice(1)}
+                  Card Type:{" "}
+                  {currentCard.type.charAt(0).toUpperCase() +
+                    currentCard.type.slice(1)}
                 </div>
               </div>
             )}
@@ -244,4 +257,4 @@ export const StudyInterface: React.FC = () => {
       )}
     </div>
   );
-}; 
+};

@@ -41,6 +41,44 @@ Completed the final phase of refactoring by fully decomposing the LanguageLearni
 - `SYSTEM_OVERVIEW.md` (updated)
 - `SESSION_LOG.md` (updated)
 
+## [2025-03-02] Repository Enhancement and Documentation
+
+### Summary
+Further enhanced the codebase with improved documentation, developer tools, and code consistency after the major refactoring.
+
+### Changes Made
+
+#### 1. Documentation Improvements
+- Updated main `README.md` to reflect current architecture and multi-language support
+- Added comprehensive JSDoc comments to key services and hooks
+- Created testing guidelines in `src/tests/COMPONENTS.md` with examples for the new architecture
+
+#### 2. Storybook Setup
+- Added Storybook for component documentation and visual testing
+- Created stories for key components:
+  - `MainMenu.stories.tsx`: Documents the main navigation menu
+  - `PromptDisplay.stories.tsx`: Shows the prompt display in various states
+
+#### 3. Code Formatting
+- Applied Prettier to standardize code formatting across the codebase
+- Fixed inconsistent formatting in TypeScript/TSX files
+
+#### 4. Testing Framework
+- Provided updated testing patterns for components, services, and hooks
+- Added examples of mocking strategies for testing isolated components
+
+**Files Created/Modified**:
+- `README.md` (updated)
+- `SESSION_LOG.md` (updated)
+- `src/tests/COMPONENTS.md` (new)
+- `src/stories/MainMenu.stories.tsx` (new)
+- `src/stories/PromptDisplay.stories.tsx` (new)
+- `src/hooks/useLanguageSession.ts` (improved documentation)
+- `src/hooks/useCampaignSession.ts` (improved documentation)
+- `src/services/languageService.ts` (improved documentation)
+- `src/services/promptService.ts` (improved documentation)
+- Multiple files (code formatting)
+
 ## [2025-03-02] Component Decomposition and Service Extraction
 
 ### Summary

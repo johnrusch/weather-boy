@@ -1,5 +1,5 @@
-import React from 'react';
-import { Prompt } from '../types/prompt';
+import React from "react";
+import { Prompt } from "../types/prompt";
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -7,7 +7,11 @@ interface PromptCardProps {
   totalPrompts: number;
 }
 
-export const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentIndex, totalPrompts }) => {
+export const PromptCard: React.FC<PromptCardProps> = ({
+  prompt,
+  currentIndex,
+  totalPrompts,
+}) => {
   return (
     <div className="bg-indigo-50 p-6 rounded-xl">
       <div className="flex justify-between items-center mb-4">
@@ -18,9 +22,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, currentIndex, to
           {prompt.category}
         </span>
       </div>
-      <p className="text-gray-700 text-lg leading-relaxed">
-        {prompt.text}
-      </p>
+      <p className="text-gray-700 text-lg leading-relaxed">{prompt.text}</p>
     </div>
   );
 };

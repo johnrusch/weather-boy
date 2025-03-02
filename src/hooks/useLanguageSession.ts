@@ -1,14 +1,43 @@
 /**
  * Language Session Hook
  * Custom hook for managing language learning session state
+ *
+ * This hook encapsulates all the logic for handling language practice sessions,
+ * including audio recording, transcription, prompt management, and evaluation.
+ *
+ * @returns {Object} Session state and methods for controlling the session
+ * @property {SessionSettings} settings - Current session settings
+ * @property {Function} setSettings - Function to update session settings
+ * @property {Prompt[]} selectedPrompts - List of prompts for the current session
+ * @property {number} currentPromptIndex - Index of the current active prompt
+ * @property {number} timeLeft - Time remaining for the current prompt in seconds
+ * @property {boolean} isRecording - Whether recording is currently active
+ * @property {Transcription[]} transcriptions - List of completed transcriptions
+ * @property {string|null} error - Any error message, or null if no error
+ * @property {boolean} isProcessing - Whether the system is processing recordings
+ * @property {string} processingStage - Current processing stage (transcribing/evaluating/generating)
+ * @property {Function} startSession - Start a new practice session
+ * @property {Function} handleNextPrompt - Move to the next prompt
+ * @property {Function} toggleRecording - Start/stop recording
+ * @property {Function} completeSession - Complete the session and process results
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import type { Prompt, Transcription, SessionSettings } from '../types/prompt';
-import { useLanguage } from '../contexts/LanguageContext';
-import { loadRandomPrompts } from '../services/promptService';
-import { createRecordingSession, startRecording, stopRecording, type AudioRecording, type RecordingSession } from '../services/recordingService';
-import { transcribeAudio, evaluateResponse, generateFlashcards } from '../services/api';
+import { useState, useRef, useEffect, useCallback } from "react";
+import type { Prompt, Transcription, SessionSettings } from "../types/prompt";
+import { useLanguage } from "../contexts/LanguageContext";
+import { loadRandomPrompts } from "../services/promptService";
+import {
+  createRecordingSession,
+  startRecording,
+  stopRecording,
+  type AudioRecording,
+  type RecordingSession,
+} from "../services/recordingService";
+import {
+  transcribeAudio,
+  evaluateResponse,
+  generateFlashcards,
+} from "../services/api";
 
 // Default session settings
 export const DEFAULT_SETTINGS: SessionSettings = {
@@ -17,32 +46,36 @@ export const DEFAULT_SETTINGS: SessionSettings = {
 };
 
 // Session processing stages
-export type ProcessingStage = 'idle' | 'transcribing' | 'evaluating' | 'generating';
+export type ProcessingStage =
+  | "idle"
+  | "transcribing"
+  | "evaluating"
+  | "generating";
 
 export interface LanguageSessionState {
   // Settings
   settings: SessionSettings;
   setSettings: (settings: SessionSettings) => void;
-  
+
   // Prompts
   selectedPrompts: Prompt[];
   currentPromptIndex: number;
-  
+
   // Timer
   timeLeft: number;
-  
+
   // Recording
   isRecording: boolean;
-  
+
   // Processing
   isProcessing: boolean;
   processingStage: ProcessingStage;
-  
+
   // Results
   transcriptions: Transcription[];
   audioRecordings: AudioRecording[];
   error: string | null;
-  
+
   // Session actions
   startPromptSession: () => Promise<void>;
   handleNextPrompt: () => Promise<void>;
@@ -52,34 +85,36 @@ export interface LanguageSessionState {
 export function useLanguageSession(): LanguageSessionState {
   // Get language from context
   const { language } = useLanguage();
-  
+
   // Settings state
   const [settings, setSettings] = useState<SessionSettings>(DEFAULT_SETTINGS);
-  
+
   // Prompt state
   const [selectedPrompts, setSelectedPrompts] = useState<Prompt[]>([]);
   const [currentPromptIndex, setCurrentPromptIndex] = useState(-1);
-  
+
   // Timer state
   const [timeLeft, setTimeLeft] = useState(0);
   const timerRef = useRef<number>();
-  
+
   // Recording state
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingSession, setRecordingSession] = useState<RecordingSession | null>(null);
+  const [recordingSession, setRecordingSession] =
+    useState<RecordingSession | null>(null);
   const [audioRecordings, setAudioRecordings] = useState<AudioRecording[]>([]);
-  
+
   // Processing state
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStage, setProcessingStage] = useState<ProcessingStage>('idle');
-  
+  const [processingStage, setProcessingStage] =
+    useState<ProcessingStage>("idle");
+
   // Results state
   const [transcriptions, setTranscriptions] = useState<Transcription[]>([]);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Refs
   const expectedRecordingsRef = useRef<number>(0);
-  
+
   // Reset session
   const resetSession = useCallback(() => {
     // Clear prompts and recordings
@@ -89,21 +124,21 @@ export function useLanguageSession(): LanguageSessionState {
     setIsRecording(false);
     setRecordingSession(null);
     setAudioRecordings([]);
-    
+
     // Clear results
     setTranscriptions([]);
     setError(null);
-    
+
     // Reset processing
     setIsProcessing(false);
-    setProcessingStage('idle');
-    
+    setProcessingStage("idle");
+
     // Clear timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
   }, []);
-  
+
   // Start a recording session
   const startSessionRecording = useCallback(async () => {
     try {
@@ -111,10 +146,12 @@ export function useLanguageSession(): LanguageSessionState {
       const updatedSession = await startRecording(session, setIsRecording);
       setRecordingSession(updatedSession);
     } catch (err) {
-      setError('Failed to access microphone. Please ensure microphone permissions are granted.');
+      setError(
+        "Failed to access microphone. Please ensure microphone permissions are granted.",
+      );
     }
   }, []);
-  
+
   // Stop the current recording
   const stopSessionRecording = useCallback(async () => {
     if (recordingSession && isRecording) {
@@ -122,129 +159,142 @@ export function useLanguageSession(): LanguageSessionState {
         const recording = await stopRecording(
           recordingSession,
           currentPromptIndex,
-          setIsRecording
+          setIsRecording,
         );
-        setAudioRecordings(prev => [...prev, recording]);
+        setAudioRecordings((prev) => [...prev, recording]);
         setRecordingSession(null);
       } catch (error) {
-        console.error('Error stopping recording:', error);
+        console.error("Error stopping recording:", error);
       }
     }
   }, [recordingSession, isRecording, currentPromptIndex]);
-  
+
   // Process all recordings from the session
   const processAllRecordings = useCallback(async () => {
     if (audioRecordings.length === 0) {
       return;
     }
-    
+
     setIsProcessing(true);
-    setProcessingStage('transcribing');
-    
+    setProcessingStage("transcribing");
+
     const newTranscriptions: Transcription[] = [];
-    
-    console.log(`Processing ${audioRecordings.length} recordings with language: ${language}`);
-    
+
+    console.log(
+      `Processing ${audioRecordings.length} recordings with language: ${language}`,
+    );
+
     // Process each recording
     for (const recording of audioRecordings) {
       try {
         // Step 1: Transcribe audio
-        const transcriptionText = await transcribeAudio(recording.blob, language);
-        
+        const transcriptionText = await transcribeAudio(
+          recording.blob,
+          language,
+        );
+
         // Step 2: Get evaluation
-        setProcessingStage('evaluating');
+        setProcessingStage("evaluating");
         const currentPrompt = selectedPrompts[recording.promptIndex];
         const evaluation = await evaluateResponse(
           transcriptionText,
           currentPrompt.text,
           language,
-          'free'
+          "free",
         );
-        
+
         // Step 3: Generate flashcards
-        setProcessingStage('generating');
-        const flashcards = await generateFlashcards(transcriptionText, language);
-        
+        setProcessingStage("generating");
+        const flashcards = await generateFlashcards(
+          transcriptionText,
+          language,
+        );
+
         // Create the transcription object
         newTranscriptions.push({
           text: transcriptionText,
           prompt: currentPrompt,
           timestamp: new Date().toISOString(),
           flashcards,
-          evaluation
+          evaluation,
         });
-        
       } catch (error) {
-        console.error('Error processing recording:', error);
-        setError('Failed to process recording');
+        console.error("Error processing recording:", error);
+        setError("Failed to process recording");
       }
     }
-    
+
     // Update state with all transcriptions
-    setTranscriptions(prev => [...prev, ...newTranscriptions]);
+    setTranscriptions((prev) => [...prev, ...newTranscriptions]);
     setIsProcessing(false);
-    setProcessingStage('idle');
+    setProcessingStage("idle");
     setAudioRecordings([]);
   }, [audioRecordings, language, selectedPrompts]);
-  
+
   // Start a new prompt session
   const startPromptSession = useCallback(async () => {
     resetSession();
-    
+
     try {
       console.log(`Starting free practice session with language: ${language}`);
-      
+
       // Load prompts for the session
       const prompts = await loadRandomPrompts(language, settings);
-      
+
       expectedRecordingsRef.current = prompts.length;
       setSelectedPrompts(prompts);
       setCurrentPromptIndex(0);
       setTimeLeft(prompts[0].duration);
-      
+
       // Start recording
       await startSessionRecording();
     } catch (error) {
-      console.error('Error starting session:', error);
-      setError('Failed to start session. Please try again.');
+      console.error("Error starting session:", error);
+      setError("Failed to start session. Please try again.");
     }
   }, [language, settings, resetSession, startSessionRecording]);
-  
+
   // Move to the next prompt
   const handleNextPrompt = useCallback(async () => {
-    console.log(`Handling next prompt. Current index: ${currentPromptIndex}, Total prompts: ${selectedPrompts.length}`);
-    
+    console.log(
+      `Handling next prompt. Current index: ${currentPromptIndex}, Total prompts: ${selectedPrompts.length}`,
+    );
+
     // Clear timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
-    
+
     // Stop current recording
     await stopSessionRecording();
-    
+
     if (currentPromptIndex < selectedPrompts.length - 1) {
       // Move to next prompt
       const nextIndex = currentPromptIndex + 1;
       console.log(`Moving to next prompt ${nextIndex + 1}`);
       setCurrentPromptIndex(nextIndex);
       setTimeLeft(selectedPrompts[nextIndex].duration);
-      
+
       // Start new recording
       await startSessionRecording();
     } else {
       // This is the last prompt
-      console.log('Finished last prompt, preparing to process recordings');
+      console.log("Finished last prompt, preparing to process recordings");
       setCurrentPromptIndex(-1);
       setTimeLeft(0);
-      
+
       // Wait a moment for the last recording to be added
       setTimeout(() => {
         if (audioRecordings.length === expectedRecordingsRef.current) {
-          console.log('Processing all recordings');
+          console.log("Processing all recordings");
           processAllRecordings();
         } else {
-          console.warn(`Missing recordings. Expected: ${expectedRecordingsRef.current}, Got: ${audioRecordings.length}`);
-          setError('Some recordings were not properly saved. Please try again.');
+          console.warn(
+            `Missing recordings. Expected: ${expectedRecordingsRef.current}, Got: ${audioRecordings.length}`,
+          );
+          setError(
+            "Some recordings were not properly saved. Please try again.",
+          );
         }
       }, 500);
     }
@@ -254,9 +304,9 @@ export function useLanguageSession(): LanguageSessionState {
     stopSessionRecording,
     startSessionRecording,
     audioRecordings.length,
-    processAllRecordings
+    processAllRecordings,
   ]);
-  
+
   // Timer effect
   useEffect(() => {
     if (timeLeft > 0 && currentPromptIndex >= 0) {
@@ -264,7 +314,7 @@ export function useLanguageSession(): LanguageSessionState {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(timerRef.current);
-            
+
             if (currentPromptIndex < selectedPrompts.length - 1) {
               // Automatically move to next prompt when time runs out
               stopSessionRecording().then(() => {
@@ -283,7 +333,7 @@ export function useLanguageSession(): LanguageSessionState {
           return prev - 1;
         });
       }, 1000);
-      
+
       return () => {
         if (timerRef.current) {
           clearInterval(timerRef.current);
@@ -295,36 +345,36 @@ export function useLanguageSession(): LanguageSessionState {
     currentPromptIndex,
     selectedPrompts,
     stopSessionRecording,
-    startSessionRecording
+    startSessionRecording,
   ]);
-  
+
   return {
     // Settings
     settings,
     setSettings,
-    
+
     // Prompts
     selectedPrompts,
     currentPromptIndex,
-    
+
     // Timer
     timeLeft,
-    
+
     // Recording
     isRecording,
-    
+
     // Processing
     isProcessing,
     processingStage,
-    
+
     // Results
     transcriptions,
     audioRecordings,
     error,
-    
+
     // Session actions
     startPromptSession,
     handleNextPrompt,
-    resetSession
+    resetSession,
   };
 }
