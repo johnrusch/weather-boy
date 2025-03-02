@@ -23,20 +23,38 @@ export default function LanguageLearningApp() {
   // Get language from context
   const { language: contextLanguage, setLanguage: setContextLanguage } = useLanguage();
   
-  // Enhanced logging
-  useEffect(() => {
-    // Log both context and localStorage values
-    const storedLanguage = typeof window !== 'undefined' ? localStorage.getItem('preferredLanguage') : null;
-    console.log("LanguageLearningApp: Current language from context:", contextLanguage);
-    console.log("LanguageLearningApp: localStorage value:", storedLanguage);
-    
-    // Detect mismatches
-    if (storedLanguage && storedLanguage !== contextLanguage) {
-      console.warn("LanguageLearningApp: DETECTED MISMATCH between context and localStorage!");
-      console.warn(`Context has '${contextLanguage}' but localStorage has '${storedLanguage}'`); 
-      // Force sync with localStorage
-      setContextLanguage(storedLanguage);
+  // Function to get display name for language code
+  const getLanguageDisplayName = (languageCode: string): string => {
+    const languageMap: Record<string, string> = {
+      'french': 'French',
+      'spanish': 'Spanish'
+    };
+    return languageMap[languageCode] || languageCode.charAt(0).toUpperCase() + languageCode.slice(1);
+  };
+  
+  // Get the language from localStorage first, then context
+  const getReliableLanguage = (): string => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('preferredLanguage');
+      if (stored && ['french', 'spanish'].includes(stored)) {
+        return stored;
+      }
     }
+    return contextLanguage || 'french';
+  };
+  
+  // Instead of a state, use a memoized value that updates when context changes
+  // This avoids creating an update loop
+  const activeLanguage = getReliableLanguage();
+  
+  // Log language state for debugging
+  useEffect(() => {
+    const storedLanguage = typeof window !== 'undefined' ? localStorage.getItem('preferredLanguage') : null;
+    console.log("LanguageLearningApp Language state:", {
+      context: contextLanguage,
+      active: activeLanguage,
+      localStorage: storedLanguage
+    });
   }, [contextLanguage]);
   
   // Initialize settings with the defaults (no language included)
@@ -279,7 +297,7 @@ export default function LanguageLearningApp() {
     // Apply the selected language from context to the campaign prompts and adjust durations
     const promptsWithSettings = level.prompts.map(prompt => ({
       ...prompt,
-      language: contextLanguage, // Use language from context
+      language: activeLanguage, // Use our reliable active language
       duration: settings.promptDuration * 60 // Convert minutes to seconds
     }));
     
@@ -421,7 +439,7 @@ export default function LanguageLearningApp() {
     
     const newTranscriptions: Transcription[] = [];
     
-    console.log(`Processing ${audioRecordings.length} recordings with language: ${contextLanguage}`);
+    console.log(`Processing ${audioRecordings.length} recordings with language: ${activeLanguage}`);
     
     // Process each recording
     for (const recording of audioRecordings) {
@@ -438,7 +456,7 @@ export default function LanguageLearningApp() {
           body: JSON.stringify({
             transcription: transcriptionText,
             promptText: currentPrompt.text,
-            language: contextLanguage, // Always use the context language
+            language: activeLanguage, // Always use our reliable active language
             levelId: mode === "campaign" ? campaignState.progress.currentLevel : 0
           }),
         });
@@ -456,7 +474,7 @@ export default function LanguageLearningApp() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             text: transcriptionText, 
-            language: contextLanguage // Always use the context language
+            language: activeLanguage // Always use our reliable active language
           }),
         });
         
@@ -600,9 +618,12 @@ export default function LanguageLearningApp() {
   }, [timeLeft, currentPromptIndex, selectedPrompts]);
 
   useEffect(() => {
+    // Get reliable language directly to avoid stale dependencies
+    const language = getReliableLanguage();
+    
     setCampaignState(prev => ({
       ...prev,
-      levels: getCampaignLevelForLanguage(initialCampaignLevels, contextLanguage)
+      levels: getCampaignLevelForLanguage(initialCampaignLevels, language)
     }));
 
     // If we have transcriptions, don't refresh prompts during an active session
@@ -722,7 +743,7 @@ export default function LanguageLearningApp() {
                 />
               )}
               <p className="text-gray-600 mb-8">
-                Ready to practice {contextLanguage}? You'll receive {settings.promptCount}{" "}
+                Ready to practice {getLanguageDisplayName(activeLanguage)}? You'll receive {settings.promptCount}{" "}
                 random prompts, with {settings.promptDuration} minutes for each
                 response.
               </p>
@@ -794,7 +815,7 @@ export default function LanguageLearningApp() {
                 <div className="mt-8 pt-8 border-t">
                   <FlashcardsList 
                     flashcards={transcriptions[0].flashcards} 
-                    language={transcriptions[0].prompt.language || contextLanguage}
+                    language={transcriptions[0].prompt.language || activeLanguage}
                   />
                 </div>
               )}

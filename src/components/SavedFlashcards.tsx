@@ -12,6 +12,15 @@ interface SavedFlashcard extends Flashcard {
   language?: string; // The language property might be present in newer cards
 }
 
+// Helper function to get display name for language code
+const getLanguageDisplayName = (languageCode: string): string => {
+  const languageMap: Record<string, string> = {
+    'french': 'French',
+    'spanish': 'Spanish'
+  };
+  return languageMap[languageCode] || languageCode.charAt(0).toUpperCase() + languageCode.slice(1);
+};
+
 export const SavedFlashcards: React.FC = () => {
   const auth = useStore($authStore);
   const user = useStore($userStore);
@@ -282,14 +291,14 @@ export const SavedFlashcards: React.FC = () => {
               </div>
               <span className="ml-2 text-sm text-gray-600 flex items-center">
                 <Globe size={16} className="mr-1" /> 
-                {showAllLanguages ? "All Languages" : `${currentLanguage.charAt(0).toUpperCase() + currentLanguage.slice(1)} Only`}
+                {showAllLanguages ? "All Languages" : `${getLanguageDisplayName(currentLanguage)} Only`}
               </span>
             </label>
           </div>
           
           {/* Current Language Indicator */}
           <div className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm mr-3">
-            Current App Language: {currentLanguage.charAt(0).toUpperCase() + currentLanguage.slice(1)}
+            Current App Language: {getLanguageDisplayName(currentLanguage)}
           </div>
           
           {/* Tag Filter */}
@@ -320,7 +329,7 @@ export const SavedFlashcards: React.FC = () => {
         <div className="text-center py-12 text-gray-500">
           {showAllLanguages 
             ? "No flashcards found" 
-            : `No flashcards found for ${currentLanguage}. Try switching to "All Languages" to see other flashcards.`}
+            : `No flashcards found for ${getLanguageDisplayName(currentLanguage)}. Try switching to "All Languages" to see other flashcards.`}
         </div>
       ) : (
         <div className="space-y-8">

@@ -2,7 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2025-03-02] - Language Synchronization Improvements
+## [2025-03-01] - Language Selection Display Fix
+### Fixed
+- Fixed issue where the practice session prompt would constantly switch between showing French and Spanish
+  - Purpose: To ensure the practice session prompt displays the correct selected language stably
+  - Affected files: 
+    - `src/components/LanguageLearningApp.tsx`: Replaced state-based approach with a function-based approach for reliable language detection
+  - Changes:
+    - Created a `getReliableLanguage()` function that prioritizes localStorage for language detection
+    - Removed the state-based approach that was causing update loops
+    - Fixed dependency arrays in useEffect hooks to prevent circular updates
+    - Improved logging to help diagnose any future language synchronization issues
+
+## [2025-03-01] - Language Synchronization Improvements
 ### Fixed
 - Fixed critical issue where changing language from dropdown wouldn't properly update throughout the application
   - Purpose: To ensure language selections are consistently applied across the entire application
@@ -11,6 +23,8 @@ All notable changes to this project will be documented in this file.
     - `src/components/HeaderLanguageSelector.tsx`: Improved language change flow to update localStorage first
     - `src/contexts/LanguageContext.tsx`: Enhanced context/localStorage synchronization and validation
     - `src/scripts/languageManager.js`: Completely reworked for robust language state management
+    - `src/components/LanguageLearningApp.tsx`: Added proper display of language names instead of showing internal codes
+    - `src/components/SavedFlashcards.tsx`: Updated to show proper language display names in UI
   - Changes:
     - Added clear visual feedback when language is changing
     - Implemented consistent order of operations (update localStorage → update context → trigger event → reload)
@@ -19,6 +33,7 @@ All notable changes to this project will be documented in this file.
     - Added periodic validation to automatically fix any language state inconsistencies
     - Improved error handling and user notifications
     - Extended delay before page reload to ensure all state updates are processed
+    - Fixed UI to show proper capitalized language names (e.g., "French" instead of "french")
 
 ## [2025-03-01] - Language Context Fixes
 ### Fixed
