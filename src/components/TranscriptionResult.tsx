@@ -69,9 +69,9 @@ export function TranscriptionResult({
                 className="bg-blue-50 p-4 rounded-lg border border-blue-200"
               >
                 <div className="flex justify-between">
-                  <span className="font-medium text-blue-800">{card.term}</span>
+                  <span className="font-medium text-blue-800">{card.targetLanguage}</span>
                   <span className="text-blue-600">→</span>
-                  <span className="text-blue-800">{card.definition}</span>
+                  <span className="text-blue-800">{card.english}</span>
                 </div>
               </div>
             ))}

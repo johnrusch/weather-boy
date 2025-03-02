@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import React from "react";
 import { MainMenu } from "../components/MainMenu";
 import { LanguageProvider } from "../contexts/LanguageContext";
 
